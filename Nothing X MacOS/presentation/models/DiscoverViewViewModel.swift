@@ -8,21 +8,15 @@
 import Foundation
 
 class DiscoverViewViewModel : ObservableObject {
-    
-    
-    private let discoverNothingUseCase: DiscoverNothingUseCaseProtocol
-    private let connectToNothingUseCase: ConnectToNothingUseCaseProtocol
-    private let isNothingConnectedUseCase: IsNothingConnectedUseCaseProtocol
+
     private let isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol
     @Published var destination: Destination = .discover_started
     
     
     private var discoveredDevice: BluetoothDeviceEntity? = nil
     
-    init(nothingService: NothingService, bluetoothService: BluetoothService) {
-        self.discoverNothingUseCase = DiscoverNothingUseCase(nothingService: nothingService)
-        self.connectToNothingUseCase = ConnectToNothingUseCase(nothingService: nothingService)
-        self.isNothingConnectedUseCase = IsNothingConnectedUseCase(nothingService: nothingService)
+    init(bluetoothService: BluetoothService) {
+
         self.isBluetoothOnUseCase = IsBluetoothOnUseCase(bluetoothService: bluetoothService)
    
         
@@ -49,5 +43,8 @@ class DiscoverViewViewModel : ObservableObject {
         }
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
     
 }

@@ -116,7 +116,7 @@ struct DiscoveryStartedView: View {
                         }
                         .zIndex(2)
 
-                    ModalSheetView(
+                    ModalSheetComponent(
                         isPresented: $viewModel.shouldPresentModalSheet,
                         title: title, text: text,
                         topButtonText: topButtonText,
@@ -263,6 +263,7 @@ struct DiscoveryStartedView: View {
                             .tint(Color.white)
                             .colorInvert()
                             .scaleEffect(0.6)
+                            .padding(.bottom, 15)
 
                     } else {
                         // Connect Button
@@ -275,7 +276,7 @@ struct DiscoveryStartedView: View {
                     }
 
                 }
-                .padding(.bottom, 15)
+                
             }
 
         }

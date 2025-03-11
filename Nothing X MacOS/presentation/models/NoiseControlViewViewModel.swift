@@ -87,6 +87,8 @@ class NoiseControlViewViewModel : ObservableObject {
        
     }
     
-    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
     
 }

@@ -12,11 +12,7 @@ struct BackButtonComponent: View {
     
     var body: some View {
         Button(action: {
-            print("Back Button Pressed!")
-//            withAnimation {
                 dismiss()
-//            }
-       
         }) {
             Image(systemName: "arrow.backward")
                 

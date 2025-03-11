@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct ModalSheetView : View {
+struct ModalSheetComponent : View {
     @Binding var isPresented: Bool
     let title: LocalizedStringKey?
     let text: LocalizedStringKey?

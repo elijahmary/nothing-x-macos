@@ -19,14 +19,13 @@ class SettingsViewViewModel : ObservableObject {
     @Published var latencySwitch = false
     @Published var inEarSwitch = false
     
-    @Published var name: String = ""
-    @Published var mac: String = ""
-    @Published var serial: String = ""
-    @Published var firmware: String = ""
-    @Published var isNothingDeviceAccessible = false
+    @Published private(set) var name: String = ""
+    @Published private(set) var mac: String = ""
+    @Published private(set) var serial: String = ""
+    @Published private(set) var firmware: String = ""
+    @Published private(set) var isNothingDeviceAccessible = false
     
-    
-    @Published var nothingDevice: NothingDeviceEntity?
+    @Published private(set) var nothingDevice: NothingDeviceEntity?
     
     
     init(nothingService: NothingService, nothingRepository: NothingRepository) {
@@ -39,28 +38,18 @@ class SettingsViewViewModel : ObservableObject {
         
         NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.REPOSITORY_DATA_UPDATED.rawValue), object: nil, queue: .main) { notification in
             
-
             if let device = notification.object as? NothingDeviceEntity {
-                
-                print("Settings View latency \(device.isLowLatencyOn)")
-                print("Settings View in ear \(device.isInEarDetectionOn)")
-                
-                self.latencySwitch = device.isLowLatencyOn
-                
-                
-                self.inEarSwitch = device.isInEarDetectionOn
-                self.nothingDevice = device
-                
-                self.name = device.bluetoothDetails.name
-                self.mac = device.bluetoothDetails.mac
-                self.serial = device.serial
-                self.firmware = device.firmware
+                self.updateDeviceDetails(device: device)
             }
         }
         
         isNothingDeviceAccessible = isNothingConnectedUseCase.isNothingConnected()
         
+        setDeviceDetails()
         
+    }
+    
+    private func setDeviceDetails() {
         let devices = getSavedDevicesUseCase.getSaved()
         if (!devices.isEmpty) {
             name = devices[0].bluetoothDetails.name
@@ -68,7 +57,18 @@ class SettingsViewViewModel : ObservableObject {
             serial = devices[0].serial
             firmware = devices[0].firmware
         }
-
+    }
+    
+    private func updateDeviceDetails(device: NothingDeviceEntity) {
+        self.latencySwitch = device.isLowLatencyOn
+        
+        self.inEarSwitch = device.isInEarDetectionOn
+        self.nothingDevice = device
+        
+        self.name = device.bluetoothDetails.name
+        self.mac = device.bluetoothDetails.mac
+        self.serial = device.serial
+        self.firmware = device.firmware
     }
     
     func switchLatency(mode: Bool) {
@@ -84,5 +84,8 @@ class SettingsViewViewModel : ObservableObject {
         deleteSavedDeviceUseCase.delete(device: devices[0])
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
     
 }

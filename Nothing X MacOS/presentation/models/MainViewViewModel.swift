@@ -11,19 +11,20 @@ import SwiftUI
 class MainViewViewModel : ObservableObject {
     
     
-    private let bluetoothService: BluetoothService
+    
     
     private let fetchDataUseCase: FetchDataUseCaseProtocol
     private let disconnectDeviceUseCase: DisconnectDeviceUseCaseProtocol
     private let getSavedDevicesUseCase: GetSavedDevicesUseCaseProtocol
-    
+    private let isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol
+    private let isNothingConnectedUseCase: IsNothingConnectedUseCaseProtocol
     private let jsonEncoder: JsonEncoder = JsonEncoder.shared
-    private let nothingRepository: NothingRepository
     
-    @Published var rightBattery: Double? = nil
-    @Published var leftBattery: Double? = nil
     
-    @Published var nothingDevice: NothingDeviceEntity?
+    @Published private var rightBattery: Double? = nil
+    @Published private var leftBattery: Double? = nil
+    
+    @Published private(set) var nothingDevice: NothingDeviceEntity?
 
     @Published var eqProfiles: EQProfiles = .BALANCED
     @Published var navigationPath: [Destination] = [.discover]
@@ -33,18 +34,25 @@ class MainViewViewModel : ObservableObject {
     @Published var leftTapAndHoldAction: TapAndHoldGestureActions = .NO_EXTRA_ACTION
     @Published var rightTapAndHoldAction: TapAndHoldGestureActions = .NOISE_CONTROL
     
+    @Published private(set) var batteryPercentage: String = ""
     
     
     
+    init(
+        fetchDataUseCase: FetchDataUseCaseProtocol,
+        disconnectDeviceUseCase: DisconnectDeviceUseCaseProtocol,
+        getSavedDevicesUseCase: GetSavedDevicesUseCaseProtocol,
+        isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol,
+        isNothingConnectedUseCase: IsNothingConnectedUseCaseProtocol
     
-    init(bluetoothService: BluetoothService, nothingRepository: NothingRepository, nothingService: NothingService) {
+    ) {
         
-        self.bluetoothService = bluetoothService
-        self.nothingRepository = nothingRepository
-        self.fetchDataUseCase = FetchDataUseCase(service: nothingService)
-        self.disconnectDeviceUseCase = DisconnectDeviceUseCase(nothingService: nothingService)
-        self.getSavedDevicesUseCase = GetSavedDevicesUseCase(nothingRepository: nothingRepository)
- 
+        self.fetchDataUseCase = fetchDataUseCase
+        self.disconnectDeviceUseCase = disconnectDeviceUseCase
+        self.getSavedDevicesUseCase = getSavedDevicesUseCase
+        self.isBluetoothOnUseCase = isBluetoothOnUseCase
+        self.isNothingConnectedUseCase = isNothingConnectedUseCase
+        
         NotificationCenter.default.addObserver(forName: Notification.Name(BluetoothNotifications.CLOSED_RFCOMM_CHANNEL.rawValue), object: nil, queue: .main) {
             notification in
                         
@@ -80,9 +88,7 @@ class MainViewViewModel : ObservableObject {
         NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.REPOSITORY_DATA_UPDATED.rawValue), object: nil, queue: .main) { notification in
             
 #warning("if there is a device currently connected and you are trying to connect or discover another device at some point it might just snap to home screen")
-//            if self.currentDestination == .connect || self.currentDestination == .discover {
-//                self.currentDestination = .home
-//            }
+
             if let device = notification.object as? NothingDeviceEntity {
                 self.nothingDevice = device
                 withAnimation {
@@ -91,6 +97,7 @@ class MainViewViewModel : ObservableObject {
                     self.leftTripleTapAction = device.tripleTapGestureActionLeft
                     self.rightTapAndHoldAction = device.tapAndHoldGestureActionRight
                     self.leftTapAndHoldAction = device.tapAndHoldGestureActionLeft
+                    self.batteryPercentage = self.calculateBatteryPercentage()
                 }
                 
                 self.jsonEncoder.addOrUpdateDevice(device.toDTO())
@@ -110,8 +117,8 @@ class MainViewViewModel : ObservableObject {
         
     
         // Check Bluetooth status and set the destination accordingly
-        if !bluetoothService.isBluetoothOn() || !bluetoothService.isDeviceConnected() {
-            let devices = nothingRepository.getSaved()
+        if !isBluetoothOnUseCase.isBluetoothOn() || !isNothingConnectedUseCase.isNothingConnected() {
+            let devices = getSavedDevicesUseCase.getSaved()
             if (devices.isEmpty) {
                 navigationPath = [.discover]
             } else {
@@ -126,5 +133,27 @@ class MainViewViewModel : ObservableObject {
         navigationPath.append(Destination.bluetooth_off)
     }
     
+
+    private func calculateBatteryPercentage() -> String {
+        // Check if both batteries are available
+        var averageBattery = 0.0
+        if let leftBattery = leftBattery {
+            averageBattery = leftBattery
+        }
+        
+        if let rightBattery = rightBattery {
+            averageBattery = rightBattery
+        }
+        if let leftBattery = leftBattery, let rightBattery = rightBattery {
+            // Calculate the average battery percentage
+            averageBattery = (leftBattery + rightBattery) / 2.0
+            // Format the result as a string with a percentage sign
+        }
+        return "\(Int(averageBattery))%"
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
     
 }

@@ -37,14 +37,11 @@ struct SettingsView: View {
                     
                     VStack(alignment: .leading) {
                         
+                        //Header title
                         HStack {
                             // Heading
                             Text("Device settings")
-                                .font(.custom("5by7", size: 16))
-                            
-                                .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
-                                .multilineTextAlignment(.center)
-                                .textCase(.uppercase)
+                                .modifier(ViewTitleStyle())
                             
                             Spacer()
                         }
@@ -56,10 +53,8 @@ struct SettingsView: View {
                             
                      
                                 Text("Advanced features")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
-                                    .textCase(.uppercase)
-                                    .padding(.top, 16)
+                                    .modifier(SettingsSubsectionTitleStyle())
+                                    .padding(.top, 8)
                                 // IN-EAR DETECT
                                 
                                 VStack(alignment: .leading) {
@@ -70,58 +65,44 @@ struct SettingsView: View {
                                         }
                                     
                                     Text("Automatically play audio when earbuds are in and pause when removed.")
-                                        .font(.system(size: 10, weight: .light))
-                                        .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
-                                        .padding(.trailing, 64)
+                                        .modifier(SettingsToggleDescriptionStyle())
                                 }
                                 .padding(.vertical, 6)
                                 
                                 VStack(alignment: .leading) {
                                     Toggle("Low lag mode", isOn: $viewModel.latencySwitch)
                                         .onChange(of: viewModel.latencySwitch) { newValue in
-                                            // Call the function when the toggle changes
+                                    
                                             viewModel.switchLatency(mode: newValue)
                                         }
                                     
                                     Text("Minimize latency for an improved gaming experience.")
-                                        .font(.system(size: 10, weight: .light))
-                                        .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
-                                        .padding(.trailing, 64)
+                                        .modifier(SettingsToggleDescriptionStyle())
                                 }
                                 .padding(.vertical, 6)
-                                
-                                
-                                // LOW LAG MODE
-                                
                                 
                                 // Find My Earbuds
                                 NavigationLink("FIND MY EARBUDS", value: Destination.findMyBuds)
                                     .buttonStyle(FindMyTransparentButton())
                                     .padding(.bottom, 8)
                                 
+                                //Separation line
                                 Rectangle()
-                                    .fill(Color(#colorLiteral(red: 0.07009194046, green: 0.07611755282, blue: 0.08425947279, alpha: 1))) // Set the color of the line
+                                    .fill(Color(#colorLiteral(red: 0.07009194046, green: 0.07611755282, blue: 0.08425947279, alpha: 1)))
                                     .frame(height: 0.8)
                             }
                             
                             Text("Device details")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
-                                .textCase(.uppercase)
-                                .padding(.top, 8)
+                                .modifier(SettingsSubsectionTitleStyle())
                                 
                             
                             VStack(alignment: .leading) {
                                 Text("Device name")
-                                    .font(.system(size: 10, weight: .light))
-                                    .textCase(.uppercase)
-                                    .padding(.bottom, 1)
-                                    .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
+                                    .modifier(SubsettingTitleStyle())
                                     
                                 
                                 Text(viewModel.name)
-                                    .font(.system(size: 10, weight: .light))
-                                    .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
+                                    .modifier(SubsettingDescriptionStyle())
                                     
                             }
                             .padding(.top, 8)
@@ -129,14 +110,10 @@ struct SettingsView: View {
                             
                             VStack(alignment: .leading) {
                                 Text("Bluetooth address")
-                                    .font(.system(size: 10, weight: .light))
-                                    .textCase(.uppercase)
-                                    .padding(.bottom, 1)
-                                    .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
+                                    .modifier(SubsettingTitleStyle())
                                 
                                 Text(viewModel.mac)
-                                    .font(.system(size: 10, weight: .light))
-                                    .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
+                                    .modifier(SubsettingDescriptionStyle())
                                     .textCase(.uppercase)
                                     
                             }
@@ -144,28 +121,20 @@ struct SettingsView: View {
                             
                             VStack(alignment: .leading) {
                                 Text("Serial number")
-                                    .font(.system(size: 10, weight: .light))
-                                    .textCase(.uppercase)
-                                    .padding(.bottom, 1)
-                                    .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
+                                    .modifier(SubsettingTitleStyle())
                                 
                                 Text(viewModel.serial)
-                                    .font(.system(size: 10, weight: .light))
-                                    .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
+                                    .modifier(SubsettingDescriptionStyle())
                                     
                             }
                             .padding(.vertical, 6)
                             
                             VStack(alignment: .leading) {
                                 Text("Firmware version")
-                                    .font(.system(size: 10, weight: .light))
-                                    .textCase(.uppercase)
-                                    .padding(.bottom, 1)
-                                    .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
+                                    .modifier(SubsettingTitleStyle())
                                 
                                 Text(viewModel.firmware)
-                                    .font(.system(size: 10, weight: .light))
-                                    .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
+                                    .modifier(SubsettingDescriptionStyle())
                                     
                             }
                             .padding(.vertical, 6)
@@ -197,8 +166,6 @@ struct SettingsView: View {
             .frame(width: 250, height: 230)
             .onAppear {
                 if let device = mainViewModel.nothingDevice {
-                    print("Settings View latency \(device.isLowLatencyOn)")
-                    print("Settings View in ear \(device.isInEarDetectionOn)")
                     viewModel.inEarSwitch = device.isInEarDetectionOn
                     viewModel.latencySwitch = device.isLowLatencyOn
                 }
@@ -213,7 +180,7 @@ struct SettingsView: View {
                     }
                     .zIndex(2)
                 
-                ModalSheetView(isPresented: $viewModel.shouldShowForgetDialog, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
+                ModalSheetComponent(isPresented: $viewModel.shouldShowForgetDialog, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
                     
                     
                     //notify app that there is no devices saved anymore
@@ -240,7 +207,14 @@ struct SettingsView_Previews: PreviewProvider {
     
     static var previews: some View {
         
-        let mainViewModel = MainViewViewModel(bluetoothService: BluetoothServiceImpl(), nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared)
+        let mainViewModel = MainViewViewModel(
+            fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
+            disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
+            getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
+            isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
+            isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared)
+            
+        )
         
         SettingsView()
             .environmentObject(mainViewModel)

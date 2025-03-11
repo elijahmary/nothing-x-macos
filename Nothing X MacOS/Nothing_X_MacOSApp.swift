@@ -1,17 +1,19 @@
-//
-//  Nothing_X_MacOSApp.swift
-//  Nothing X MacOS
-//
-//  Created by Arunavo Ray on 07/01/23.
-//
 
 import SwiftUI
 
 
 @main
 struct Nothing_X_MacOSApp: App {
+    
     @StateObject private var store = Store()
-    @StateObject private var viewModel = MainViewViewModel(bluetoothService: BluetoothServiceImpl(), nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared)
+    @StateObject private var viewModel = MainViewViewModel(
+        fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
+        disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
+        getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
+        isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
+        isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared)
+        
+    )
     @StateObject private var budsPickerViewModel = BudsPickerComponentViewModel()
 
     var body: some Scene {
@@ -31,7 +33,7 @@ struct Nothing_X_MacOSApp: App {
                         )
                         case .settings: SettingsView()
                         case .findMyBuds: FindMyBudsView()
-                        case .discover: DiscoverView()
+                        case .discover: DiscoveryView()
                                 .transition(.asymmetric(insertion: .opacity, removal: .opacity))
                         case .connect: ConnectView()
                                 .transition(.asymmetric(insertion: .opacity, removal: .opacity))
@@ -52,14 +54,9 @@ struct Nothing_X_MacOSApp: App {
             
         } label: {
             
-            if (viewModel.rightBattery != nil && viewModel.rightBattery != nil) {
-                Label("\(Double((viewModel.leftBattery ?? 0.0) + (viewModel.rightBattery ?? 0.0)) / 2.0, specifier: "%.0f")%", image: "nothing.ear.1")
-                    .labelStyle(.titleAndIcon)
-            } else {
-                Label("", image: "nothing.ear.1")
-                    .labelStyle(.titleAndIcon)
-            }
-
+            Label(viewModel.batteryPercentage, image: "nothing.ear.1")
+                .labelStyle(.titleAndIcon)
+            
         }
         .menuBarExtraStyle(.window)
         

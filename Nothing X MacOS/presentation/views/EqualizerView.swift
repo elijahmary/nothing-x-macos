@@ -11,7 +11,7 @@ struct EqualizerView: View {
     
     
     @ObservedObject var viewModel = EqualizerViewViewModel(nothingService: NothingServiceImpl.shared)
-    @Binding var eqMode: EQProfiles
+    @Binding var eqMode: EQProfiles 
     
     var body: some View {
         
@@ -26,25 +26,29 @@ struct EqualizerView: View {
       
             }
             
-            VStack(alignment: .center) {
+            
+            HStack {
                 
                 VStack(alignment: .leading) {
                     // Heading
                     Text("EQUALISER")
-                        .font(.custom("5by7", size: 16))
-                        .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
-                        .multilineTextAlignment(.center)
+                        .modifier(ViewTitleStyle())
                         .padding(.bottom, 4)
-                        .textCase(.uppercase)
-                        .padding(.top, 4)
                     
                     // Desc
                     Text("Customise your sound by selecting your favourite preset.")
-                        .font(.system(size: 10, weight: .light))
-                        .foregroundColor(Color(#colorLiteral(red: 0.6000000238, green: 0.6000000238, blue: 0.6000000238, alpha: 1)))
-                        .multilineTextAlignment(.leading)
+                        .modifier(DescriptionTextStyle())
+                    
                 }
-                .padding(.leading, 8)
+                .padding(.leading, 16)
+                .padding(.trailing, 8)
+                
+                Spacer()
+                
+            }
+                
+            
+            VStack(alignment: .center) {
                 
                 Spacer()
                 
@@ -57,8 +61,6 @@ struct EqualizerView: View {
                     
                     .buttonStyle(EQButton(selected: eqMode == .BALANCED))
                     
-                    
-                    
                     //MORE BASS
                     Button("More bass") {
                         viewModel.switchEQ(eq: .MORE_BASE)
@@ -68,7 +70,7 @@ struct EqualizerView: View {
                 //HStack - MORE TREBLE | Controls
                 HStack(spacing: 5) {
                     //MORE TREBLE
-                    Button("More trebel") {
+                    Button("More treble") {
                         viewModel.switchEQ(eq: .MORE_TREBEL)
                     }
                     .buttonStyle(EQButton(selected: eqMode == .MORE_TREBEL))
@@ -78,7 +80,7 @@ struct EqualizerView: View {
                         viewModel.switchEQ(eq: .VOICE)
                     }
                     .buttonStyle(EQButton(selected: eqMode == .VOICE))                }
-            
+                
             
             Spacer()
             
@@ -99,7 +101,14 @@ struct EqualizerView_Previews: PreviewProvider {
 
         var body: some View {
             EqualizerView(eqMode: $eqMode) // Pass the binding
-                .environmentObject(MainViewViewModel(bluetoothService: BluetoothServiceImpl(), nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared))
+                .environmentObject(MainViewViewModel(
+                    fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
+                    disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
+                    getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
+                    isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
+                    isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared)
+                    
+                ))
                 .previewDisplayName("Equalizer View Preview")
         }
     }

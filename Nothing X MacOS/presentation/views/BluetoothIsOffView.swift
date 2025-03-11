@@ -11,10 +11,8 @@ struct BluetoothIsOffView: View {
     
     @State private var viewModel = BluetoothIsOffViewViewModel()
     
-    
     var body: some View {
      
-        
         ZStack {
            
             VStack(alignment: .center) {
@@ -73,10 +71,7 @@ struct BluetoothIsOffView: View {
                     HStack {
                         
                         Text("Your bluetooth is off")
-                            .font(.custom("5by7", size: 16))
-                            .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
-                            .multilineTextAlignment(.leading)
-                            .textCase(.uppercase)
+                            .modifier(ViewTitleStyle())
                         Spacer()
                     }
                         
@@ -92,19 +87,11 @@ struct BluetoothIsOffView: View {
                     viewModel.openBluetoothPreferences()
                 }
                 .buttonStyle(OffWhiteConnectButton())
-                .focusable(false)
-                .padding(.bottom, 15)
                 .zIndex(1)
             }
         }
         .frame(width: 250, height: 230)
         .background(Color.black)
-        
-          
-       
-            
-         
-            
        
     }
 }

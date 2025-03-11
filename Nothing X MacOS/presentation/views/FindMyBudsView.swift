@@ -43,10 +43,7 @@ struct FindMyBudsView: View {
                         if !isRunning {
                             
                             Text("Find my buds")
-                                .font(.custom("5by7", size: 16))
-                                .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
-                                .multilineTextAlignment(.leading)
-                                .textCase(.uppercase)
+                                .modifier(ViewTitleStyle())
                                 
                                 
                             Spacer()
@@ -54,11 +51,7 @@ struct FindMyBudsView: View {
                             // Description
                             HStack {
                                 Text("Click above to play sound.")
-                                    .lineLimit(1)
-                                    .font(.system(size: 10, weight: .light))
-                                    .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.bottom, 12)
+                                    .modifier(DescriptionTextStyle())
                                     
                                 
                                 Spacer()
@@ -158,7 +151,7 @@ struct FindMyBudsView: View {
                     }
                     .zIndex(3)
                 
-                ModalSheetView(isPresented: $viewModel.shouldShowWarning, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
+                ModalSheetComponent(isPresented: $viewModel.shouldShowWarning, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
                     
                     withAnimation {
                         isRunning = true

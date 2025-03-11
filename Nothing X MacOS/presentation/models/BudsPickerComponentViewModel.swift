@@ -23,36 +23,26 @@ class BudsPickerComponentViewModel : ObservableObject {
             animateSwitch()
         }
     }
-    
     private func animateSwitch() {
-        if selection == .LEFT {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    self.isRightDarken = true
-                    self.isLeftDarken = false
-                    self.leftButtonOffset = 5
-                    self.rightButtonOffset = 5
-                    self.scaleButtonRight = 0.9
-                    self.scaleButtonLeft = 1.2
-                    self.selectedBudText = "Left"
-                }
-            }
-        } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    self.isRightDarken = false
-                    self.isLeftDarken = true
-                    self.leftButtonOffset = -5
-                    self.rightButtonOffset = -5
-                    self.scaleButtonRight = 1.2 // Scale back to original size
-                    self.scaleButtonLeft = 0.9
-                    self.selectedBudText = "Right"
-                    
-                    
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                if self.selection == .LEFT {
+                    self.setAnimationProperties(isLeftDarken: false, isRightDarken: true, leftButtonOffset: 5, rightButtonOffset: 5, scaleButtonLeft: 1.2, scaleButtonRight: 0.9, selectedBudText: "Left")
+                } else {
+                    self.setAnimationProperties(isLeftDarken: true, isRightDarken: false, leftButtonOffset: -5, rightButtonOffset: -5, scaleButtonLeft: 0.9, scaleButtonRight: 1.2, selectedBudText: "Right")
                 }
             }
         }
     }
 
+    private func setAnimationProperties(isLeftDarken: Bool, isRightDarken: Bool, leftButtonOffset: CGFloat, rightButtonOffset: CGFloat, scaleButtonLeft: CGFloat, scaleButtonRight: CGFloat, selectedBudText: String) {
+        self.isLeftDarken = isLeftDarken
+        self.isRightDarken = isRightDarken
+        self.leftButtonOffset = leftButtonOffset
+        self.rightButtonOffset = rightButtonOffset
+        self.scaleButtonLeft = scaleButtonLeft
+        self.scaleButtonRight = scaleButtonRight
+        self.selectedBudText = selectedBudText
+    }
    
 }

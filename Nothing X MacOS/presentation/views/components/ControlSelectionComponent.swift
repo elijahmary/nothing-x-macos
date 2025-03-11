@@ -17,18 +17,7 @@ struct ControlSelectionComponent: View {
                     VStack(alignment: .leading) {
                         HStack{
                             Text("TRIPLE TAP")
-                            HStack(spacing: 2) {
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 4, height: 4)
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 4, height: 4)
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 4, height: 4)
-                               
-                            }
+                            TripleTapIconComponent()
                             
                         }
                         
@@ -54,14 +43,7 @@ struct ControlSelectionComponent: View {
                     VStack(alignment: .leading) {
                         HStack{
                             Text("TAP & HOLD")
-                            HStack(spacing: 0) {
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 4, height: 4)
-                                Rectangle()
-                                    .fill(Color.red)
-                                    .frame(width: 8, height: 1)
-                            }
+                            TapAndHoldIconComponent()
                         }
                         
                         Spacer(minLength: 2)

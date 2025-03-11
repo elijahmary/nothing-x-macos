@@ -46,7 +46,7 @@ struct QuitButtonComponent: View {
                     }
                     .zIndex(3)
                 
-                ModalSheetView(isPresented: $shouldShowCloseAppWarning, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
+                ModalSheetComponent(isPresented: $shouldShowCloseAppWarning, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
                     
                     NSApplication.shared.terminate(nil)
 

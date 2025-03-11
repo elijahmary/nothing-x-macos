@@ -1,12 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
-    "%.0f%%" : {
-
-    },
     "%lld%% C" : {
 
     },
@@ -106,7 +100,7 @@
     "More bass" : {
 
     },
-    "More trebel" : {
+    "More treble" : {
 
     },
     "NOISE CONTROL" : {
@@ -115,7 +109,7 @@
     "Play" : {
 
     },
-    "RECONNECT" : {
+    "Reconnect" : {
 
     },
     "Retry" : {
@@ -130,10 +124,16 @@
     "Set up this device" : {
 
     },
+    "Tap & hold" : {
+
+    },
     "TAP & HOLD" : {
 
     },
     "The application won't be able to communicate with your device." : {
+
+    },
+    "Triple tap" : {
 
     },
     "TRIPLE TAP" : {

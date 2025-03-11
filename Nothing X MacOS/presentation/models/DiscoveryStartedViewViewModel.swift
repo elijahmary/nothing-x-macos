@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 class DiscoveryStartedViewViewModel : ObservableObject {
     
-    
     private let discoverNothingUseCase: DiscoverNothingUseCaseProtocol
     private let connectToNothingUseCase: ConnectToNothingUseCaseProtocol
     private let isNothingConnectedUseCase: IsNothingConnectedUseCaseProtocol
@@ -20,24 +19,22 @@ class DiscoveryStartedViewViewModel : ObservableObject {
     
     @Published var viewState: DiscoverStates = .not_discovering
     
-    @Published var deviceName: String = ""
-    @Published var discoveryCirclesOffset: CGFloat = 0 //-60 when found
-    @Published var shouldShowDevice = false
-    @Published var shouldShowDiscoveryCircles = true
-    @Published var shouldShowDiscoveryMessage = true
-    @Published var shouldShowBudsBackground = false
-    @Published var shouldShowDeviceName = false 
-    @Published var budsScale = 0.7
-    @Published var budsOffsetY: CGFloat = 0 //32 when done
-    @Published var budsOffsetX: CGFloat = 170 // 0 when done
-    @Published var budsBackgroundsOffsetY: CGFloat = 0 //28 when done
-    @Published var budsBackgroundOffsetX: CGFloat = 170 // 0 when done
-    @Published var deviceNameOffsetX: CGFloat = 80
-    @Published var deviceNameOffsetY: CGFloat = 30
-    @Published var deviceNameFontSize: CGFloat = 12
-    @Published var showSetUpButton = false
-    
-
+    @Published private(set) var deviceName: String = ""
+    @Published private(set) var discoveryCirclesOffset: CGFloat = 0 //-60 when found
+    @Published private(set) var shouldShowDevice = false
+    @Published private(set) var shouldShowDiscoveryCircles = true
+    @Published private(set) var shouldShowDiscoveryMessage = true
+    @Published private(set) var shouldShowBudsBackground = false
+    @Published private(set) var shouldShowDeviceName = false
+    @Published private(set) var budsScale = 0.7
+    @Published private(set) var budsOffsetY: CGFloat = 0 //32 when done
+    @Published private(set) var budsOffsetX: CGFloat = 170 // 0 when done
+    @Published private(set) var budsBackgroundsOffsetY: CGFloat = 0 //28 when done
+    @Published private(set) var budsBackgroundOffsetX: CGFloat = 170 // 0 when done
+    @Published private(set) var deviceNameOffsetX: CGFloat = 80
+    @Published private(set) var deviceNameOffsetY: CGFloat = 30
+    @Published private(set) var deviceNameFontSize: CGFloat = 12
+    @Published private(set) var showSetUpButton = false
     @Published var shouldPresentModalSheet = false
     
     
@@ -197,6 +194,8 @@ class DiscoveryStartedViewViewModel : ObservableObject {
         stopNothingDiscoveryUseCase.stopNothingDiscovery()
     }
     
-    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
     
 }

@@ -23,9 +23,12 @@ class EqualizerViewViewModel : ObservableObject {
         NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.REPOSITORY_DATA_UPDATED.rawValue), object: nil, queue: .main) { notification in
             
             if let device = notification.object as? NothingDeviceEntity {
-                
-                if self.eq != device.listeningMode {
-                    self.eq = device.listeningMode
+                withAnimation {
+                    
+                    if self.eq != device.listeningMode {
+                        self.eq = device.listeningMode
+                    }
+                    
                 }
                 
             }
@@ -39,4 +42,7 @@ class EqualizerViewViewModel : ObservableObject {
         switchEqUseCase.switchEQ(mode: eq)
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }

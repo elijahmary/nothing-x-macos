@@ -110,27 +110,21 @@ struct ControlsView: View {
         
 }
 
-struct VisualEffectBlur: NSViewRepresentable {
-    var blurStyle: NSVisualEffectView.BlendingMode
 
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.blendingMode = blurStyle
-        view.state = .active
-        return view
-    }
-
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.blendingMode = blurStyle
-        nsView.state = .active
-    }
-}
 
 struct ControlsView_Previews: PreviewProvider {
     static let store = Store()
     static var previews: some View {
         ControlsView().environmentObject(store)
-            .environmentObject(MainViewViewModel(bluetoothService: BluetoothServiceImpl(), nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared))
+            .environmentObject(MainViewViewModel(
+                fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
+                disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
+                getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
+                isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
+                isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared)
+                
+            ))
+            .environmentObject(BudsPickerComponentViewModel())
     }
 }
 

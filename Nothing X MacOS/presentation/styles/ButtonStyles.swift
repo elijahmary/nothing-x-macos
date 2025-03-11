@@ -11,12 +11,25 @@ import SwiftUI
 
 struct GreyButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(4)
-            .frame(width: 90, height: 34)
-            .background(Color(#colorLiteral(red: 0.10980392247438431, green: 0.11372549086809158, blue: 0.12156862765550613, alpha: 1)))
-            .font(.system(size: 10, weight:.light)).foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
-            .clipShape(Capsule())
+        if #available(macOS 14.0, *) {
+            configuration.label
+                .padding(4)
+                .frame(width: 90, height: 34)
+                .background(Color(#colorLiteral(red: 0.10980392247438431, green: 0.11372549086809158, blue: 0.12156862765550613, alpha: 1)))
+                .font(.system(size: 10, weight:.light)).foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
+                .clipShape(Capsule())
+                .focusable(false)
+              
+        } else {
+            configuration.label
+                .padding(4)
+                .frame(width: 90, height: 34)
+                .background(Color(#colorLiteral(red: 0.10980392247438431, green: 0.11372549086809158, blue: 0.12156862765550613, alpha: 1)))
+                .font(.system(size: 10, weight:.light)).foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
+                .clipShape(Capsule())
+                .focusable(false)
+                
+        }
             
     }
 }
@@ -72,6 +85,8 @@ struct OffWhiteConnectButton: ButtonStyle {
             .font(.system(size: 10, weight:.regular)).foregroundColor(Color(#colorLiteral(red: 0, green: 0, blue: 0, alpha: 0.8)))
             .clipShape(Capsule())
             .textCase(.uppercase)
+            .focusable(false)
+            .padding(.bottom, 15)
     }
 }
 
@@ -88,9 +103,10 @@ struct TransparentButton: ButtonStyle {
 
 
 struct EQButton: ButtonStyle {
-    var selected: Bool = false
+    var selected: Bool = false 
     
     func makeBody(configuration: Configuration) -> some View {
+        
         if(selected) {
             configuration.label
                 .padding(4)
@@ -101,6 +117,8 @@ struct EQButton: ButtonStyle {
                 .colorInvert()
                 .focusable(false)
                 .textCase(.uppercase)
+                
+            
         }
         else {
             configuration.label
@@ -111,7 +129,11 @@ struct EQButton: ButtonStyle {
                 .clipShape(Capsule())
                 .focusable(false)
                 .textCase(.uppercase)
+                
+                
+                
         }
+        
     }
     
 }

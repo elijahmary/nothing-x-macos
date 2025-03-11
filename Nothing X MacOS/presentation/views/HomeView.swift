@@ -9,8 +9,6 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var store: Store
-//    @EnvironmentObject var viewModel: MainViewViewModel
-    
     
     var body: some View {
         ZStack {
@@ -23,56 +21,45 @@ struct HomeView: View {
             .padding(.bottom, 4)
             .zIndex(1)
        
-
             VStack(alignment: .center) {
                 
                 // Settings | Quit
                 HStack {
                     Spacer()
-                    
                     // Settings
                     SettingsButtonComponent()
-                    
                     // Quit
                     QuitButtonComponent()
                 }
                 
-                
                 VStack {
-                    
                     
                     //HStack - Equaliser | Controls
                     HStack(spacing: 5) {
                         
-
                         //EQUALISER
-                         
                         if #available(macOS 14.0, *) {
                             NavigationLink("EQUALISER", value: Destination.equalizer)
                                 .buttonStyle(GreyButton())
-                                .focusable(false)
                                 .focusEffectDisabled()
+                                .focusable(false)
                         } else {
                             NavigationLink("EQUALISER", value: Destination.equalizer)
                                 .buttonStyle(GreyButton())
                                 .focusable(false)
-                                
                         }
-                                
-                            
+                        
                         //CONTROLS
                         if #available(macOS 14.0, *) {
                             NavigationLink("CONTROLS", value: Destination.controls)
                                 .buttonStyle(GreyButton())
-                                .focusable(false)
                                 .focusEffectDisabled()
+                                .focusable(false)
                         } else {
                             NavigationLink("CONTROLS", value: Destination.controls)
                                 .buttonStyle(GreyButton())
                                 .focusable(false)
-                                
                         }
-                        
                     }
                     
                     Spacer()
@@ -94,12 +81,7 @@ struct HomeView: View {
                     
                     Spacer()
                 }
-                // Compensates for Leading side Spacer + DotTextView
-                
-                
-                
             }
-                    
         }
     
         .background(.black)
@@ -114,17 +96,21 @@ struct HomeView_Previews: PreviewProvider {
     static let store = Store()
 
     @State static var currentDestination: Destination? = .home
-    @ObservedObject var viewModel: MainViewViewModel = MainViewViewModel(bluetoothService: BluetoothServiceImpl(), nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared)
+    @ObservedObject private var viewModel = MainViewViewModel(
+        fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
+        disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
+        getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
+        isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
+        isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared)
+        
+    )
 
     
     static var previews: some View {
-            // Use a Group to allow for multiple previews if needed
-        
+        // Use a Group to allow for multiple previews if needed
         HomeView() // Pass the binding
-                    .environmentObject(store)
-//                    .environmentObject(viewModel)
-                    .previewDisplayName("Home View Preview") // Optional: Name the preview
-            
-        }
-
+            .environmentObject(store)
+            .previewDisplayName("Home View Preview")
+    }
+    
 }

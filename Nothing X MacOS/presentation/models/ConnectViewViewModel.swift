@@ -18,7 +18,7 @@ class ConnectViewViewModel : ObservableObject {
     @Published var retry = false
     
     private let isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol
-    @Published var isBluetoothOn = false
+    @Published private(set) var isBluetoothOn = false
     
     
     init(nothingRepository: NothingRepository, nothingService: NothingService, bluetoothService: BluetoothService) {
@@ -76,6 +76,10 @@ class ConnectViewViewModel : ObservableObject {
             isFailedToConnectPresented = false
         }
         
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
 }

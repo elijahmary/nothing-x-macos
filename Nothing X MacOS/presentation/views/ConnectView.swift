@@ -52,7 +52,7 @@ struct ConnectView: View {
                     Image("ear_1")
                         .overlay(
                             LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.0), Color.black.opacity(0.8)]), startPoint: .top, endPoint: .bottom)
-                                .blendMode(.darken) // Blend mode to darken the image
+                                .blendMode(.darken)
                         )
                     
                     
@@ -65,11 +65,12 @@ struct ConnectView: View {
                             .tint(Color.white)
                             .colorInvert()
                             .scaleEffect(0.6)
+                            .padding(.bottom, 15)
                         
                         
                     } else {
                         // Connect Button
-                        Button("RECONNECT") {
+                        Button("Reconnect") {
                             viewModel.checkBluetoothStatus()
                             if viewModel.isBluetoothOn {
                                 viewModel.connect()
@@ -79,11 +80,9 @@ struct ConnectView: View {
                         
                         }
                         .buttonStyle(OffWhiteConnectButton())
-                        .focusable(false)
-                        
                         
                     }
-                    Spacer(minLength: 15)
+                    
                 }
                 
                 
@@ -100,7 +99,7 @@ struct ConnectView: View {
                     }
                     .zIndex(2)
                 
-                ModalSheetView(isPresented: $viewModel.isFailedToConnectPresented, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
+                ModalSheetComponent(isPresented: $viewModel.isFailedToConnectPresented, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
                     viewModel.retryConnect()
                 }, onCancelAction: {})
                 .animation(.easeInOut, value: viewModel.isFailedToConnectPresented) // Animate the appearance

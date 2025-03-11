@@ -74,36 +74,16 @@ struct ControlsDetailView: View {
                     HStack{
                         if(destination == .controlsTripleTap) {
                             VStack {
-                                HStack(spacing: 2) {
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 4, height: 4)
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 4, height: 4)
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 4, height: 4)
-                                    
-                                }
-                                .padding(.bottom, 2)
-                                
-                                Text("TRIPLE TAP")
-                                    .font(.system(size: 10, weight:.light))
+                                TripleTapIconComponent()
+                                Text("Triple tap")
+                                    .modifier(ActionSelectionTitleTextStyle())
                             }
                         }
                         else {
                             VStack {
-                                HStack(spacing: 0) {
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 4, height: 4)
-                                    Rectangle()
-                                        .fill(Color.red)
-                                        .frame(width: 8, height: 1)
-                                }
-                                .padding(.bottom, 2)
-                                Text("TAP & HOLD")
+                                TapAndHoldIconComponent()
+                                Text("Tap & hold")
+                                    .modifier(ActionSelectionTitleTextStyle())
                             }
                         }
                     }
@@ -117,8 +97,7 @@ struct ControlsDetailView: View {
                                 
                                 HStack {
                                     Text(option.rawValue)
-                                        .padding(4)
-                                        .textCase(.uppercase)
+                                        .modifier(ActionSelectionTextStyle())
                                     Spacer()
                                     
                                     
@@ -131,19 +110,15 @@ struct ControlsDetailView: View {
                                         }
                                      
                                     }) {
-                                        if option == selectedTripleAction {
-                                            Image("radio_button_selected_dark")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 16, height: 16)
+                                        
+                                        Image(option == selectedTripleAction
+                                              ? "radio_button_selected_dark"
+                                              : "radio_button_not_selected_dark")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
                                             
-                                        } else {
-                                            Image("radio_button_not_selected_dark")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 16, height: 16)
-                                            
-                                        }
+                                     
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     .padding(.trailing, 2)
@@ -194,19 +169,14 @@ struct ControlsDetailView: View {
                                         }
                                     
                                     }) {
-                                        if option == selectedTapAndHoldAction {
-                                            Image("radio_button_selected_dark")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 16, height: 16)
-                                            
-                                        } else {
-                                            Image("radio_button_not_selected_dark")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 16, height: 16)
-                                            
-                                        }
+                                        
+                                        Image(option == selectedTapAndHoldAction
+                                              ? "radio_button_selected_dark"
+                                              : "radio_button_not_selected_dark")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
+                                        
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     .padding(.trailing, 2)
@@ -226,8 +196,7 @@ struct ControlsDetailView: View {
                         
                     }
                 }
-                .pickerStyle(.radioGroup)
-                .labelsHidden()
+             
                 .frame(width: 200)
                 .padding(10)
                 .background(Color(#colorLiteral(red: 0.10980392247438431, green: 0.11372549086809158, blue: 0.12156862765550613, alpha: 1)))
@@ -279,7 +248,14 @@ struct ControlsDetailView_Previews: PreviewProvider {
                                leftTapAndHoldAction: $leftTapAndHoldAction,
                                rightTapAndHoldAction: $rightTapAndHoldAction
             ).environmentObject(store)
-                .environmentObject(MainViewViewModel(bluetoothService: BluetoothServiceImpl(), nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared))
+                .environmentObject(MainViewViewModel(
+                    fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
+                    disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
+                    getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
+                    isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
+                    isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared)
+                    
+                ))
                 .environmentObject(viewModel)
         }
     }

@@ -10,7 +10,15 @@ import SwiftUI
 
 
 class BatteryIndicatorViewViewModel : ObservableObject {
-    
+    @Published var leftBattery: Int = 0;
+    @Published var rightBattery: Int = 0;
+    @Published var caseBattery: Int = 0;
+    @Published var isLeftCharging = false;
+    @Published var isRightCharging = false;
+    @Published var isCaseCharging = false;
+    @Published var isLeftConnected = false;
+    @Published var isRightConnected = false;
+    @Published var isCaseConnected = true;
     
     init() {
         
@@ -76,16 +84,12 @@ class BatteryIndicatorViewViewModel : ObservableObject {
             }
         }
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
         
     
     
-    @Published var leftBattery: Int = 0;
-    @Published var rightBattery: Int = 0;
-    @Published var caseBattery: Int = 0;
-    @Published var isLeftCharging = false;
-    @Published var isRightCharging = false;
-    @Published var isCaseCharging = false;
-    @Published var isLeftConnected = false;
-    @Published var isRightConnected = false;
-    @Published var isCaseConnected = true;
+  
 }
