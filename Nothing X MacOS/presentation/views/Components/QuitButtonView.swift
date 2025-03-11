@@ -10,10 +10,10 @@ import SwiftUI
 struct QuitButtonView: View {
     
     
-    @State var title: String? = "Close Application?"
-    @State var text: String? = "The application won't be able to communicate with your device."
-    @State var topButtonText: String? = "Close"
-    @State var bottomButtonText: String? = "Cancel"
+    private let title: LocalizedStringKey? = "Close Application?"
+    private let text: LocalizedStringKey? = "The application won't be able to communicate with your device."
+    private let topButtonText: LocalizedStringKey? = "Close"
+    private let bottomButtonText: LocalizedStringKey? = "Cancel"
     
     @State private var shouldShowCloseAppWarning = false
     
@@ -46,7 +46,7 @@ struct QuitButtonView: View {
                     }
                     .zIndex(3)
                 
-                ModalSheetView(isPresented: $shouldShowCloseAppWarning, title: $title, text: $text, topButtonText: $topButtonText, bottomButtonText: $bottomButtonText, action: {
+                ModalSheetView(isPresented: $shouldShowCloseAppWarning, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
                     
                     NSApplication.shared.terminate(nil)
 

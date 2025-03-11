@@ -37,11 +37,7 @@ class DiscoveryStartedViewViewModel : ObservableObject {
     @Published var deviceNameFontSize: CGFloat = 12
     @Published var showSetUpButton = false
     
-    
-    @Published var title: String? = "Can't find your device?"
-    @Published var text: String? = "Make sure device is on and in discovery mode."
-    @Published var topButtonText: String? = "Retry"
-    @Published var bottomButtonText: String? = "Cancel"
+
     @Published var shouldPresentModalSheet = false
     
     

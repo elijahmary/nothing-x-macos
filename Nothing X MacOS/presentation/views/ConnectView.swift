@@ -9,10 +9,10 @@ import SwiftUI
 
 struct ConnectView: View {
     
-    @State var title: String? = "Failed to connect"
-    @State var text: String? = "Make sure device is on and in discovery mode."
-    @State var topButtonText: String? = "Retry"
-    @State var bottomButtonText: String? = "Cancel"
+    private let title: LocalizedStringKey? = "Failed to connect"
+    private let text: LocalizedStringKey? = "Make sure device is on and in discovery mode."
+    private let topButtonText: LocalizedStringKey? = "Retry"
+    private let bottomButtonText: LocalizedStringKey? = "Cancel"
     
     @StateObject private var viewModel = ConnectViewViewModel(nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared, bluetoothService: BluetoothServiceImpl())
     
@@ -100,7 +100,7 @@ struct ConnectView: View {
                     }
                     .zIndex(2)
                 
-                ModalSheetView(isPresented: $viewModel.isFailedToConnectPresented, title: $title, text: $text, topButtonText: $topButtonText, bottomButtonText: $bottomButtonText, action: {
+                ModalSheetView(isPresented: $viewModel.isFailedToConnectPresented, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
                     viewModel.retryConnect()
                 }, onCancelAction: {})
                 .animation(.easeInOut, value: viewModel.isFailedToConnectPresented) // Animate the appearance

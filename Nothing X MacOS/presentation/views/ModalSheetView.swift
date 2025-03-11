@@ -10,10 +10,10 @@ import SwiftUI
 
 struct ModalSheetView : View {
     @Binding var isPresented: Bool
-    @Binding var title: String?
-    @Binding var text: String?
-    @Binding var topButtonText: String?
-    @Binding var bottomButtonText: String?
+    let title: LocalizedStringKey?
+    let text: LocalizedStringKey?
+    let topButtonText: LocalizedStringKey?
+    let bottomButtonText: LocalizedStringKey?
 
     let action: () -> Void
     let onCancelAction: () -> Void

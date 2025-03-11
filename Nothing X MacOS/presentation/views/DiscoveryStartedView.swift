@@ -16,6 +16,12 @@ struct DiscoveryStartedView: View {
         bluetoothService: BluetoothServiceImpl())
 
     @ObservedObject private var animation = PulsingCirclesAnimation.shared
+    
+    
+    private let title: LocalizedStringKey? = "Can't find your device?"
+    private let text: LocalizedStringKey? = "Make sure device is on and in discovery mode."
+    private let topButtonText: LocalizedStringKey? = "Retry"
+    private let bottomButtonText: LocalizedStringKey? = "Cancel"
 
     var body: some View {
 
@@ -112,9 +118,9 @@ struct DiscoveryStartedView: View {
 
                     ModalSheetView(
                         isPresented: $viewModel.shouldPresentModalSheet,
-                        title: $viewModel.title, text: $viewModel.text,
-                        topButtonText: $viewModel.topButtonText,
-                        bottomButtonText: $viewModel.bottomButtonText,
+                        title: title, text: text,
+                        topButtonText: topButtonText,
+                        bottomButtonText: bottomButtonText,
                         action: {
                             viewModel.startDiscovery()
                         },

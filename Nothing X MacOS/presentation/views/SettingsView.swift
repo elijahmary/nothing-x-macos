@@ -9,10 +9,10 @@ import SwiftUI
 
 struct SettingsView: View {
     
-    @State var title: String? = "Forget This Device?"
-    @State var text: String? = nil
-    @State var topButtonText: String? = "Forget"
-    @State var bottomButtonText: String? = "Cancel"
+    private let title: LocalizedStringKey? = "Forget This Device?"
+    private let text: LocalizedStringKey? = nil
+    private let topButtonText: LocalizedStringKey? = "Forget"
+    private let bottomButtonText: LocalizedStringKey? = "Cancel"
     
     
     @StateObject private var viewModel = SettingsViewViewModel(nothingService: NothingServiceImpl.shared, nothingRepository: NothingRepositoryImpl.shared)
@@ -213,7 +213,7 @@ struct SettingsView: View {
                     }
                     .zIndex(2)
                 
-                ModalSheetView(isPresented: $viewModel.shouldShowForgetDialog, title: $title, text: $text, topButtonText: $topButtonText, bottomButtonText: $bottomButtonText, action: {
+                ModalSheetView(isPresented: $viewModel.shouldShowForgetDialog, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
                     
                     
                     //notify app that there is no devices saved anymore

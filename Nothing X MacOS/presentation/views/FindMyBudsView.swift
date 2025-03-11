@@ -9,10 +9,10 @@ import SwiftUI
 import TipKit
 struct FindMyBudsView: View {
     
-    @State var title: String? = "Volume warning"
-    @State var text: String? = "Your earbuds may be in use. Be sure to remove them from your ears before you continue. A loud sound will be played which could be uncomfortable for anyone wears them."
-    @State var topButtonText: String? = "Play"
-    @State var bottomButtonText: String? = "Cancel"
+    private let title: LocalizedStringKey? = "Volume warning"
+    private let text: LocalizedStringKey? = "Your earbuds may be in use. Be sure to remove them from your ears before you continue. A loud sound will be played which could be uncomfortable for anyone wears them."
+    private let topButtonText: LocalizedStringKey? = "Play"
+    private let bottomButtonText: LocalizedStringKey? = "Cancel"
     
     @ObservedObject private var animation = PulsingCirclesAnimation.shared
     
@@ -47,7 +47,7 @@ struct FindMyBudsView: View {
                                 .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
                                 .multilineTextAlignment(.leading)
                                 .textCase(.uppercase)
-                                .padding(.vertical, 6)
+                                
                                 
                             Spacer()
                             
@@ -80,74 +80,71 @@ struct FindMyBudsView: View {
             .zIndex(1)
             
             
-            VStack {
+            
+            
+            HStack(alignment: .center) {
                 VStack(alignment: .center) {
-                    HStack(alignment: .center) {
-                        VStack {
-                            if viewModel.isRinging {
+                    if viewModel.isRinging {
+                        
+                        ZStack {
+                            
+                            Circle()
+                                .stroke(Color.red.opacity(1.0), lineWidth: 0.8)
+                                .scaleEffect(animation.scale) // Scale effect based on the scale state
+                                .opacity(animation.opacity) // Opacity effect based on the opacity state
+                            
+                            
+                            
+                            
+                            Circle()
+                                .stroke(Color.red.opacity(1.0), lineWidth: 0.8)
+                                .scaleEffect(animation.secondCircleScale) // Scale effect for the second circle
+                                .opacity(animation.secondCircleOpacity) // Opacity effect for the second circle
+                                .onAppear {
+                                    // Start the animation for the second circle
+                                }
+                            
+                            HStack {
+                                Image(systemName: "stop.fill")
+                                    .font(.system(size: 18, weight: .light))
+                                    .aspectRatio(contentMode: .fit) // Maintain aspect ratio
+                                    .foregroundColor(.white)
+                            }
+                            .frame(width: 60, height: 60)
+                            .background(Color(#colorLiteral(red: 0.843137264251709, green: 0.09019608050584793, blue: 0.12941177189350128, alpha: 1)))
+                            .clipShape(Circle()
+                            )
+                            .onTapGesture {
+                                viewModel.stopRingingBuds()
+                                animation.stopAnimation()
+                                withAnimation {
+                                    isRunning = false
+                                }
                                 
-                                ZStack {
-                                    
-                                    Circle()
-                                        .stroke(Color.red.opacity(1.0), lineWidth: 0.8)
-                                        .scaleEffect(animation.scale) // Scale effect based on the scale state
-                                        .opacity(animation.opacity) // Opacity effect based on the opacity state
-                                                  
-                                                   
-                                    
-                                    
-                                    Circle()
-                                        .stroke(Color.red.opacity(1.0), lineWidth: 0.8)
-                                        .scaleEffect(animation.secondCircleScale) // Scale effect for the second circle
-                                        .opacity(animation.secondCircleOpacity) // Opacity effect for the second circle
-                                        .onAppear {
-                                            // Start the animation for the second circle
-                                        }
-                                    
-                                    HStack {
-                                        Image(systemName: "stop.fill")
-                                            .font(.system(size: 18, weight: .light))
-                                            .aspectRatio(contentMode: .fit) // Maintain aspect ratio
-                                            .foregroundColor(.white)
-                                    }
-                                    .frame(width: 60, height: 60)
-                                    .background(Color(#colorLiteral(red: 0.843137264251709, green: 0.09019608050584793, blue: 0.12941177189350128, alpha: 1)))
-                                    .clipShape(Circle()
-                                    )
-                                    .onTapGesture {
-                                        viewModel.stopRingingBuds()
-                                        animation.stopAnimation()
-                                        withAnimation {
-                                            isRunning = false
-                                        }
-                                       
-                                    }
-                                    
-                                }
-                                .frame(width: 60, height: 60)
-                                
-                           
-                            } else {
-                              
-                                HStack {
-                                    Image(systemName: "play.fill")
-                                        .font(.system(size: 18, weight: .light))
-                                        .aspectRatio(contentMode: .fit) // Maintain aspect ratio
-                                        .foregroundColor(.white)
-                                }
-                                .frame(width: 60, height: 60)
-                                .background(Color(#colorLiteral(red: 0.843137264251709, green: 0.09019608050584793, blue: 0.12941177189350128, alpha: 1)))
-                                .clipShape(Circle())
-                                .onTapGesture {
-                                    withAnimation {
-                                        viewModel.shouldShowWarning = true
-                                    }
-                                }
+                            }
+                            
+                        }
+                        .frame(width: 60, height: 60)
+                        
+                        
+                    } else {
+                        
+                        HStack {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 18, weight: .light))
+                                .aspectRatio(contentMode: .fit) // Maintain aspect ratio
+                                .foregroundColor(.white)
+                        }
+                        .frame(width: 60, height: 60)
+                        .background(Color(#colorLiteral(red: 0.843137264251709, green: 0.09019608050584793, blue: 0.12941177189350128, alpha: 1)))
+                        .clipShape(Circle())
+                        .onTapGesture {
+                            withAnimation {
+                                viewModel.shouldShowWarning = true
                             }
                         }
                     }
                 }
-                
             }
             
             }
@@ -161,7 +158,7 @@ struct FindMyBudsView: View {
                     }
                     .zIndex(3)
                 
-                ModalSheetView(isPresented: $viewModel.shouldShowWarning, title: $title, text: $text, topButtonText: $topButtonText, bottomButtonText: $bottomButtonText, action: {
+                ModalSheetView(isPresented: $viewModel.shouldShowWarning, title: title, text: text, topButtonText: topButtonText, bottomButtonText: bottomButtonText, action: {
                     
                     withAnimation {
                         isRunning = true

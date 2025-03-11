@@ -1,0 +1,159 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "%.0f%%" : {
+
+    },
+    "%lld%% C" : {
+
+    },
+    "%lld%% L" : {
+
+    },
+    "%lld%% R" : {
+
+    },
+    "Add new device" : {
+
+    },
+    "Advanced features" : {
+
+    },
+    "Automatically play audio when earbuds are in and pause when removed." : {
+
+    },
+    "Balanced" : {
+
+    },
+    "Bluetooth address" : {
+
+    },
+    "Can't find your device?" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Click above to add new device." : {
+
+    },
+    "Click above to play sound." : {
+
+    },
+    "Close" : {
+
+    },
+    "Close Application?" : {
+
+    },
+    "CONTROLS" : {
+
+    },
+    "Customise your sound by selecting your favourite preset." : {
+
+    },
+    "Device details" : {
+
+    },
+    "Device name" : {
+
+    },
+    "Device settings" : {
+
+    },
+    "ear (1)" : {
+
+    },
+    "Ensure device is in pairing mode." : {
+
+    },
+    "EQUALISER" : {
+
+    },
+    "Failed to connect" : {
+
+    },
+    "Find my buds" : {
+
+    },
+    "FIND MY EARBUDS" : {
+
+    },
+    "Firmware version" : {
+
+    },
+    "Forget" : {
+
+    },
+    "Forget This Device?" : {
+
+    },
+    "In-ear detection" : {
+
+    },
+    "Low lag mode" : {
+
+    },
+    "Make sure device is on and in discovery mode." : {
+
+    },
+    "Minimize latency for an improved gaming experience." : {
+
+    },
+    "More bass" : {
+
+    },
+    "More trebel" : {
+
+    },
+    "NOISE CONTROL" : {
+
+    },
+    "Play" : {
+
+    },
+    "RECONNECT" : {
+
+    },
+    "Retry" : {
+
+    },
+    "Scanning" : {
+
+    },
+    "Serial number" : {
+
+    },
+    "Set up this device" : {
+
+    },
+    "TAP & HOLD" : {
+
+    },
+    "The application won't be able to communicate with your device." : {
+
+    },
+    "TRIPLE TAP" : {
+
+    },
+    "Turn on bluetooth" : {
+
+    },
+    "Voice" : {
+
+    },
+    "Volume warning" : {
+
+    },
+    "Your bluetooth is off" : {
+
+    },
+    "Your earbuds may be in use. Be sure to remove them from your ears before you continue. A loud sound will be played which could be uncomfortable for anyone wears them." : {
+
+    }
+  },
+  "version" : "1.0"
+}

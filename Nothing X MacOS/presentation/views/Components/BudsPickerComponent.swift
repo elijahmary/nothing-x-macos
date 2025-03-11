@@ -12,6 +12,8 @@ struct BudsPickerComponent: View {
     @EnvironmentObject var viewModel: BudsPickerComponentViewModel
     let action: (_ selection: DeviceType) -> Void
     
+    
+    
 
     var body: some View {
         ZStack(alignment: .center) {
