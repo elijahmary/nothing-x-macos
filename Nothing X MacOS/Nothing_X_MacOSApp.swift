@@ -36,7 +36,7 @@ struct Nothing_X_MacOSApp: App {
                         case .connect: ConnectView()
                             //                                .animation(nil)
                                 .transition(.asymmetric(insertion: .opacity, removal: .opacity))
-                        case .discover_started: DiscoverStartedView()
+                        case .discover_started: DiscoveryStartedView()
                         case .bluetooth_off: BluetoothIsOffView()
                             
                         }

@@ -7,13 +7,14 @@
 
 import Foundation
 import SwiftUI
-class DiscoverStartedViewViewModel : ObservableObject {
+class DiscoveryStartedViewViewModel : ObservableObject {
     
     
     private let discoverNothingUseCase: DiscoverNothingUseCaseProtocol
     private let connectToNothingUseCase: ConnectToNothingUseCaseProtocol
     private let isNothingConnectedUseCase: IsNothingConnectedUseCaseProtocol
     private let stopNothingDiscoveryUseCase: StopNothingDiscoveryUseCaseProtocol
+    private let isBluetoothConnectedUseCase: IsBluetoothOnUseCaseProtocol
     
     private var discoveredDevice: BluetoothDeviceEntity? = nil
     
@@ -45,11 +46,12 @@ class DiscoverStartedViewViewModel : ObservableObject {
     
     
     
-    init(nothingService: NothingService) {
+    init(nothingService: NothingService, bluetoothService: BluetoothService ) {
         self.discoverNothingUseCase = DiscoverNothingUseCase(nothingService: nothingService)
         self.connectToNothingUseCase = ConnectToNothingUseCase(nothingService: nothingService)
         self.isNothingConnectedUseCase = IsNothingConnectedUseCase(nothingService: nothingService)
         self.stopNothingDiscoveryUseCase = StopNothingDiscoveryUseCase(nothingService: nothingService)
+        self.isBluetoothConnectedUseCase = IsBluetoothOnUseCase(bluetoothService: bluetoothService)
         
         NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.FOUND.rawValue), object: nil, queue: .main) { notification in
             
@@ -120,13 +122,26 @@ class DiscoverStartedViewViewModel : ObservableObject {
             
             self.viewState = .failed_to_connect
         }
+        
+        
+        NotificationCenter.default.addObserver(forName: Notification.Name(BluetoothNotifications.BLUETOOTH_OFF.rawValue), object: nil, queue: .main) {
+            notification in
+            
+            //stop discovery
+            //navigate to bluetooth is off screen
+            
+            self.navigateToBluetoothOffView()
+            
+        }
 
-    
-        #warning("should handle a state where bluetooth turns off")
 
     }
     
     
+    private func navigateToBluetoothOffView() {
+        self.stopDiscovery()
+        NotificationCenter.default.post(name: Notification.Name(Notifications.APPEND_NAVIGATION_PATH.rawValue), object: Destination.bluetooth_off)
+    }
     
     func startDiscovery() {
         
@@ -182,7 +197,7 @@ class DiscoverStartedViewViewModel : ObservableObject {
         
     }
     
-    func stopDeviceDiscovery() {
+    func stopDiscovery() {
         stopNothingDiscoveryUseCase.stopNothingDiscovery()
     }
     

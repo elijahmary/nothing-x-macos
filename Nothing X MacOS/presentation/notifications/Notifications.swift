@@ -10,4 +10,5 @@ import Foundation
 enum Notifications : String {
     
     case REQUEST_RETRY = "REQUEST_RETRY"
+    case APPEND_NAVIGATION_PATH = "APPEND_NAVIGATION_PATH"
 }

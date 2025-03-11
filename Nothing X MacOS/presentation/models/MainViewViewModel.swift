@@ -98,6 +98,14 @@ class MainViewViewModel : ObservableObject {
             }
         }
         
+        NotificationCenter.default.addObserver(forName: Notification.Name(Notifications.APPEND_NAVIGATION_PATH.rawValue), object: nil, queue: .main) { notification in
+            
+            if let path = notification.object as? Destination {
+                self.navigationPath.append(path)
+            }
+        }
+
+        
     
         // Check Bluetooth status and set the destination accordingly
         if !bluetoothService.isBluetoothOn() || !bluetoothService.isDeviceConnected() {
