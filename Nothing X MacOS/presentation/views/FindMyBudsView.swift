@@ -14,17 +14,11 @@ struct FindMyBudsView: View {
     @State var topButtonText: String? = "Play"
     @State var bottomButtonText: String? = "Cancel"
     
-    @StateObject private var viewModel = FindMyBudsViewViewModel(nothingService: NothingServiceImpl.shared)
+    @ObservedObject private var animation = PulsingCirclesAnimation.shared
     
-    @State private var scale: CGFloat = 1.0 // Initial scale for the first circle
-    @State private var opacity: Double = 1.0 // Initial opacity for the first circle
-    @State private var showSecondCircle: Bool = false // State variable to control the visibility of the second circle
-    @State private var secondCircleScale: CGFloat = 1.0 // Initial scale for the second circle
-    @State private var secondCircleOpacity: Double = 0.0 // Initial opacity for the second circle
-
+    @StateObject private var viewModel = FindMyBudsViewViewModel(nothingService: NothingServiceImpl.shared)
     @State private var isRunning = false
     
-    private let popoverTip = HearingLossToolTip()
     var body: some View {
         
         ZStack(alignment: .bottom) {
@@ -96,20 +90,16 @@ struct FindMyBudsView: View {
                                     
                                     Circle()
                                         .stroke(Color.red.opacity(1.0), lineWidth: 0.8)
-                                                   .scaleEffect(scale) // Scale effect based on the scale state
-                                                   .opacity(opacity) // Opacity effect based on the opacity state
-                                                   .onAppear {
-                                                       // Start the animation loop when the view appears
-                                                      
-//
-                                                   }
+                                        .scaleEffect(animation.scale) // Scale effect based on the scale state
+                                        .opacity(animation.opacity) // Opacity effect based on the opacity state
+                                                  
                                                    
                                     
                                     
                                     Circle()
                                         .stroke(Color.red.opacity(1.0), lineWidth: 0.8)
-                                        .scaleEffect(secondCircleScale) // Scale effect for the second circle
-                                        .opacity(secondCircleOpacity) // Opacity effect for the second circle
+                                        .scaleEffect(animation.secondCircleScale) // Scale effect for the second circle
+                                        .opacity(animation.secondCircleOpacity) // Opacity effect for the second circle
                                         .onAppear {
                                             // Start the animation for the second circle
                                         }
@@ -125,12 +115,12 @@ struct FindMyBudsView: View {
                                     .clipShape(Circle()
                                     )
                                     .onTapGesture {
-                                        
                                         viewModel.stopRingingBuds()
+                                        animation.stopAnimation()
                                         withAnimation {
                                             isRunning = false
                                         }
-                                      
+                                       
                                     }
                                     
                                 }
@@ -173,12 +163,11 @@ struct FindMyBudsView: View {
                 
                 ModalSheetView(isPresented: $viewModel.shouldShowWarning, title: $title, text: $text, topButtonText: $topButtonText, bottomButtonText: $bottomButtonText, action: {
                     
-                    if (!isRunning) {
-                        withAnimation {
-                            isRunning = true
-                        }
-                        startAnimation()
+                    withAnimation {
+                        isRunning = true
                     }
+                    animation.startAnimation()
+                    
                     viewModel.ringBuds()
 
                 }, onCancelAction: {})
@@ -192,63 +181,11 @@ struct FindMyBudsView: View {
         .frame(width: 250, height: 230)
         .onDisappear {
             viewModel.stopRingingBuds()
+            animation.stopAnimation()
         }
     }
     
-    private func startAnimation() {
-        
-        if (!isRunning) {
-            return
-        }
-        // Animate to scale 3 and fade out
-        withAnimation(.easeOut(duration: 1)) {
-            scale = 3.0
-            opacity = 0.0
-        }
-        
-        
-        // Show the second circle after a delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            showSecondCircle = true // Show the second circle
-            startSecondCircleAnimation()
-            //Start the animation for the second circle
-        }
-        
-        // Delay to allow the scale and fade out to complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            // Reset to original scale and opacity
-            
-            scale = 1.0
-            opacity = 1.0
-            
-            // Call the function again to create a loop
-            startAnimation()
-        }
-        
-        
-    }
     
-    private func startSecondCircleAnimation() {
-        
-        if (!isRunning) {
-            return
-        }
-        
-        // Animate the second circle to scale 1.5 and fade in
-        withAnimation(.easeOut(duration: 1)) {
-            secondCircleScale = 3
-            secondCircleOpacity = 0.0
-        }
-        
-        // Delay to allow the scale and fade in to complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            // Reset the second circle to original scale and opacity
-            
-            secondCircleScale = 1.0
-            secondCircleOpacity = 1.0
-            
-        }
-    }
 }
 
 
@@ -260,27 +197,4 @@ struct FindMyBudsView_Previews: PreviewProvider {
 }
 
 
-struct HearingLossToolTip : Tip {
-    
-    var id: String {
-        "Hearing loss tool tip"
-    }
-    
-    var title: Text {
-        Text("Important hearing damage information")
-    }
-    
-    var message: Text? {
-        Text("Make sure your earbuds are not in use before you continue. Activating this feature with earbuds in-ear may cause hearing damage.")
-    }
-    
-    var image: Image? {
-        
-        let image: Image = Image(systemName: "ear.trianglebadge.exclamationmark")
-            
-            
-        return image
-    }
-    
-    
-}
+
