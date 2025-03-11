@@ -18,7 +18,7 @@ struct Nothing_X_MacOSApp: App {
         MenuBarExtra {
             NavigationStack(path: $viewModel.navigationPath.animation(.default)) {
                 
-                HomeView()
+                ConnectView()
                     .navigationDestination(for: Destination.self) { destination in
                         switch(destination) {
                         case .home: HomeView()
@@ -34,7 +34,6 @@ struct Nothing_X_MacOSApp: App {
                         case .discover: DiscoverView()
                                 .transition(.asymmetric(insertion: .opacity, removal: .opacity))
                         case .connect: ConnectView()
-                            //                                .animation(nil)
                                 .transition(.asymmetric(insertion: .opacity, removal: .opacity))
                         case .discover_started: DiscoveryStartedView()
                         case .bluetooth_off: BluetoothIsOffView()

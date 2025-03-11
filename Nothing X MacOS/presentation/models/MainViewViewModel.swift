@@ -26,12 +26,14 @@ class MainViewViewModel : ObservableObject {
     @Published var nothingDevice: NothingDeviceEntity?
 
     @Published var eqProfiles: EQProfiles = .BALANCED
-    @Published var navigationPath = NavigationPath()
+    @Published var navigationPath: [Destination] = [.discover]
     
     @Published var leftTripleTapAction: TripleTapGestureActions = .NO_EXTRA_ACTION
     @Published var rightTripleTapAction: TripleTapGestureActions = .SKIP_BACK
     @Published var leftTapAndHoldAction: TapAndHoldGestureActions = .NO_EXTRA_ACTION
     @Published var rightTapAndHoldAction: TapAndHoldGestureActions = .NOISE_CONTROL
+    
+    
     
     
     
@@ -111,9 +113,9 @@ class MainViewViewModel : ObservableObject {
         if !bluetoothService.isBluetoothOn() || !bluetoothService.isDeviceConnected() {
             let devices = nothingRepository.getSaved()
             if (devices.isEmpty) {
-                navigationPath.append(Destination.discover)
+                navigationPath = [.discover]
             } else {
-                navigationPath.append(Destination.connect)
+                navigationPath = [.connect]
             }
         }
         
