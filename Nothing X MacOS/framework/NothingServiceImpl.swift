@@ -108,6 +108,7 @@ class NothingServiceImpl: NothingService {
         }
         
         func switchLowLatency(mode: Bool) {
+            
             var array: [UInt8] = [0x02, 0x00]
             if mode {
                 array[0] = 0x01
@@ -117,12 +118,13 @@ class NothingServiceImpl: NothingService {
                 guard let self = self else { return }
                 switch result {
                 case .success:
-                    logger.info("Successfully changed latency settings")
+                    logger.info("Successfully changed latency settings \(mode)")
                     nothingDevice?.isLowLatencyOn = mode
                 case .failure(let error):
                     logger.error("Failed to change latency settings: \(error.localizedDescription)")
                 }
             }
+            
         }
         
         func switchInEarDetection(mode: Bool) {
@@ -591,8 +593,16 @@ class NothingServiceImpl: NothingService {
     }
     
     private func readLatencyMode(hexArray: [UInt8]) -> Bool {
-        logger.info("Read latency \(hexArray[8] != 0)")
-        return (hexArray[8] != 0)
+        
+        return if hexArray[8] == 1 {
+            true
+        } else if hexArray[8] == 2 {
+            false
+        } else {
+            false
+        }
+        logger.info("Read latency \(hexArray[8])")
+        
     }
     
     private func readInEarDetection(hexArray: [UInt8]) -> Bool {

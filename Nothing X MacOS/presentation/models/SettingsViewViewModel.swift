@@ -72,6 +72,7 @@ class SettingsViewViewModel : ObservableObject {
     }
     
     func switchLatency(mode: Bool) {
+        
         switchLatencyUseCase.switchLatency(mode: mode)
     }
     
