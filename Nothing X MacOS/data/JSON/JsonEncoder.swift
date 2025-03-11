@@ -6,12 +6,12 @@
 //
 
 import Foundation
-
-
+import os
 
 class JsonEncoder {
     private let fileName: String
     private var devices: [String: NothingDeviceDTO] = [:] // Hashmap for MAC to device entity
+    private let logger = Logger(subsystem: "com.eldandelion.Nothing-X-MacOS", category: "json encoder")
     
     static let shared = JsonEncoder(fileName: "configurations")
     
@@ -25,7 +25,7 @@ class JsonEncoder {
         let decoder = JSONDecoder()
         
         guard let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            print("Document directory not found.")
+            logger.error("Document directory not found.")
             return
         }
         
@@ -42,7 +42,7 @@ class JsonEncoder {
             let loadedDevices = try decoder.decode([NothingDeviceDTO].self, from: data)
             devices = Dictionary(uniqueKeysWithValues: loadedDevices.map { ($0.bluetoothDetails.mac, $0) }) // Convert to hashmap
         } catch {
-            print("Error loading devices: \(error)")
+            logger.error("Error loading devices: \(error.localizedDescription)")
         }
     }
     
@@ -51,9 +51,9 @@ class JsonEncoder {
         do {
             let emptyData = Data() // Empty data to write
             try emptyData.write(to: url) // Create the file
-            print("Created empty JSON file at \(url.path)")
+            logger.info("Created empty JSON file at \(url.path)")
         } catch {
-            print("Error creating empty JSON file: \(error)")
+            logger.error("Error creating empty JSON file: \(error.localizedDescription)")
         }
     }
     
@@ -66,9 +66,9 @@ class JsonEncoder {
             let jsonData = try encoder.encode(Array(devices.values)) // Encode values of the hashmap
             let fileURL = getFileURL()
             try jsonData.write(to: fileURL)
-            print("Devices saved to \(fileURL.path)")
+            logger.info("Devices saved to \(fileURL.path)")
         } catch {
-            print("Error saving devices: \(error)")
+            logger.error("Error saving devices: \(error.localizedDescription)")
         }
     }
     
