@@ -16,7 +16,7 @@ struct HomeView: View {
         ZStack {
             
             HStack {
-                DeviceNameDotTextView()
+                DeviceNameComponent()
                 Spacer()
             }
             
@@ -31,10 +31,10 @@ struct HomeView: View {
                     Spacer()
                     
                     // Settings
-                    SettingsButtonView()
+                    SettingsButtonComponent()
                     
                     // Quit
-                    QuitButtonView()
+                    QuitButtonComponent()
                 }
                 
                 
@@ -79,18 +79,18 @@ struct HomeView: View {
                     
                     // NOISE CONTROL
                     if #available(macOS 14.0, *) {
-                        NoiseControlView(selection: $store.noiseControlSelected)
+                        NoiseControlComponent(selection: $store.noiseControlSelected)
                             .focusable(false)
                             .focusEffectDisabled()
                     } else {
-                        NoiseControlView(selection: $store.noiseControlSelected)
+                        NoiseControlComponent(selection: $store.noiseControlSelected)
                             .focusable(false)
                     }
                     
                     Spacer()
                     
                     // Battery Indicator
-                    BatteryIndicatorView()
+                    BatteryIndicatorComponent()
                     
                     Spacer()
                 }

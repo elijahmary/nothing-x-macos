@@ -20,7 +20,7 @@ struct EqualizerView: View {
             // Back - Heading - Settings | Quit
             HStack {
                 // Back
-                BackButtonView()
+                BackButtonComponent()
                 
                 Spacer()
       

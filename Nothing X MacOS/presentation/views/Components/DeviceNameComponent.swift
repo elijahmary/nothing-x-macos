@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct DeviceNameDotTextView: View {
+struct DeviceNameComponent: View {
     var body: some View {
         VStack {
             Spacer(minLength: 4)
@@ -27,6 +27,6 @@ struct DeviceNameDotTextView: View {
 
 struct DeviceNameDotTextView_Previews: PreviewProvider {
     static var previews: some View {
-        DeviceNameDotTextView()
+        DeviceNameComponent()
     }
 }

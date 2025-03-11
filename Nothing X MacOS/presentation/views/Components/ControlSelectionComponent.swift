@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ControlMenuView: View {
+struct ControlSelectionComponent: View {
     @EnvironmentObject var store: Store
     
     var body: some View {
@@ -157,6 +157,6 @@ struct ControlMenuView: View {
 struct ControlMenuView_Previews: PreviewProvider {
     static let store = Store()
     static var previews: some View {
-        ControlMenuView().environmentObject(store)
+        ControlSelectionComponent().environmentObject(store)
     }
 }

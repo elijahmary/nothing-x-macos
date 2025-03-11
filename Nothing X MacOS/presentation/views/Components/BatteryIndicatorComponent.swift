@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BatteryIndicatorView: View {
+struct BatteryIndicatorComponent: View {
     @EnvironmentObject var store: Store
     @StateObject private var viewModel =  BatteryIndicatorViewViewModel()
     
@@ -89,6 +89,6 @@ struct BatteryIndicatorView: View {
 struct BatteryIndicatorView_Previews: PreviewProvider {
     static let store = Store()
     static var previews: some View {
-        BatteryIndicatorView().environmentObject(store)
+        BatteryIndicatorComponent().environmentObject(store)
     }
 }

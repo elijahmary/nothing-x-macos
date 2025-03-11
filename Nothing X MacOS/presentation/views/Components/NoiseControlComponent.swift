@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct NoiseControlView<SelectedANC: Hashable>: View {
+struct NoiseControlComponent<SelectedANC: Hashable>: View {
     
     
     @StateObject private var viewModel = NoiseControlViewViewModel(nothingService: NothingServiceImpl.shared)
@@ -214,6 +214,6 @@ struct NoiseControlView_Previews: PreviewProvider {
     static let store = Store()
    
     static var previews: some View {
-        NoiseControlView(selection: .constant(NoiseControlOptions.transparency.rawValue)).environmentObject(store)
+        NoiseControlComponent(selection: .constant(NoiseControlOptions.transparency.rawValue)).environmentObject(store)
     }
 }

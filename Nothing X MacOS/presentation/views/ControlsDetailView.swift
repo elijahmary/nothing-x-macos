@@ -30,7 +30,7 @@ struct ControlsDetailView: View {
             // Back - Heading - Settings | Quit
                 HStack {
                     // Back
-                    BackButtonView()
+                    BackButtonComponent()
                     
                     Spacer()
                     

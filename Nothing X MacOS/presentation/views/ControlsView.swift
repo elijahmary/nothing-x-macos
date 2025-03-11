@@ -36,7 +36,7 @@ struct ControlsView: View {
             HStack {
                 
                 // Back
-                BackButtonView()
+                BackButtonComponent()
              
                 
                 Spacer()
@@ -85,7 +85,7 @@ struct ControlsView: View {
                     Spacer()
                     
                     // Control Menu
-                    ControlMenuView()
+                    ControlSelectionComponent()
                     
                     Spacer()
                 }

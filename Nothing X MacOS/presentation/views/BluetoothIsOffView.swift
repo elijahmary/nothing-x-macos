@@ -62,7 +62,7 @@ struct BluetoothIsOffView: View {
             
             VStack {
                 HStack {
-                    BackButtonView()
+                    BackButtonComponent()
                     Spacer()
                 }
                 .zIndex(1)

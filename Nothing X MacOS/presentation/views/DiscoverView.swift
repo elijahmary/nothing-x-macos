@@ -23,14 +23,14 @@ struct DiscoverView : View {
                     
                     
                     if false {
-                        BackButtonView()
+                        BackButtonComponent()
                     }
                
                     Spacer()
                     
                     
                     // Quit
-                    QuitButtonView()
+                    QuitButtonComponent()
                     
                 }
          

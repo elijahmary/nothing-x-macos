@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BackButtonView: View {
+struct BackButtonComponent: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -34,6 +34,6 @@ struct BackButtonView: View {
 
 struct BackButtonView_Previews: PreviewProvider {
     static var previews: some View {
-        BackButtonView()
+        BackButtonComponent()
     }
 }

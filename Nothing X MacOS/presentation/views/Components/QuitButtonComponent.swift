@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct QuitButtonView: View {
+struct QuitButtonComponent: View {
     
     
     private let title: LocalizedStringKey? = "Close Application?"
@@ -66,6 +66,6 @@ struct QuitButtonView: View {
 
 struct QuitButtonView_Previews: PreviewProvider {
     static var previews: some View {
-        QuitButtonView()
+        QuitButtonComponent()
     }
 }

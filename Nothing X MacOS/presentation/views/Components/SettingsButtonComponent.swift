@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SettingsButtonView: View {
+struct SettingsButtonComponent: View {
     var body: some View {
         // Settings
         NavigationLink(value: Destination.settings) {
@@ -24,6 +24,6 @@ struct SettingsButtonView: View {
 
 struct SettingsButtonView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsButtonView()
+        SettingsButtonComponent()
     }
 }

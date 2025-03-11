@@ -29,10 +29,10 @@ struct FindMyBudsView: View {
             VStack(spacing: 0) {
                 HStack {
                     
-                    BackButtonView()
+                    BackButtonComponent()
                     Spacer()
                     // Quit
-                    QuitButtonView()
+                    QuitButtonComponent()
                     
                 }
                 

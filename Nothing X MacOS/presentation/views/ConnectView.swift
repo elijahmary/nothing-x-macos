@@ -27,7 +27,7 @@ struct ConnectView: View {
             // ear (1)
             
             HStack {
-                DeviceNameDotTextView()
+                DeviceNameComponent()
                 Spacer()
             }
             .padding(.bottom, 4)
@@ -41,10 +41,10 @@ struct ConnectView: View {
                     Spacer()
                     
                     // Settings
-                    SettingsButtonView()
+                    SettingsButtonComponent()
                     
                     // Quit
-                    QuitButtonView()
+                    QuitButtonComponent()
                 }
                 
                 VStack {

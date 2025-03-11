@@ -29,7 +29,7 @@ struct DiscoveryStartedView: View {
 
             VStack {
                 HStack(alignment: .top) {
-                    BackButtonView()
+                    BackButtonComponent()
                     Spacer()
                 }
 
