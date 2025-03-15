@@ -83,6 +83,7 @@ struct SettingsView: View {
                                 
                                 // Find My Earbuds
                                 NavigationLink("FIND MY EARBUDS", value: Destination.findMyBuds)
+                                    .textCase(.uppercase)
                                     .buttonStyle(FindMyTransparentButton())
                                     .padding(.bottom, 8)
                                 
@@ -138,6 +139,18 @@ struct SettingsView: View {
                                     
                             }
                             .padding(.vertical, 6)
+                            
+                            Rectangle()
+                                .fill(Color(#colorLiteral(red: 0.07009194046, green: 0.07611755282, blue: 0.08425947279, alpha: 1)))
+                                .frame(height: 0.8)
+                            
+                            Text("About")
+                                .modifier(SettingsSubsectionTitleStyle())
+                            
+                            NavigationLink("Supported devices", value: Destination.supported_devices)
+                                .textCase(.uppercase)
+                                .buttonStyle(FindMyTransparentButton())
+                                .padding(.bottom, 8)
                            
                                 
                         }

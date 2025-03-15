@@ -20,4 +20,5 @@ enum Destination: String, CaseIterable, Hashable {
     case discover = "discover"
     case discover_started = "discover_started"
     case bluetooth_off = "bluetooth_off"
+    case supported_devices = "supported_devices"
 }

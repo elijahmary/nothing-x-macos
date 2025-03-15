@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 class DiscoveryStartedViewViewModel : ObservableObject {
     
     private let discoverNothingUseCase: DiscoverNothingUseCaseProtocol
@@ -36,6 +37,8 @@ class DiscoveryStartedViewViewModel : ObservableObject {
     @Published private(set) var deviceNameFontSize: CGFloat = 12
     @Published private(set) var showSetUpButton = false
     @Published var shouldPresentModalSheet = false
+    
+    private var bluConnectivityCancellable: AnyCancellable?
     
     
     
@@ -115,19 +118,22 @@ class DiscoveryStartedViewViewModel : ObservableObject {
             
             self.viewState = .failed_to_connect
         }
-        
-        
-        NotificationCenter.default.addObserver(forName: Notification.Name(BluetoothNotifications.BLUETOOTH_OFF.rawValue), object: nil, queue: .main) {
-            notification in
-            
-            //stop discovery
-            //navigate to bluetooth is off screen
-            
-            self.navigateToBluetoothOffView()
-            
-        }
+    
 
-
+    }
+    
+    func startObservingBluConnectivity() {
+        bluConnectivityCancellable = NotificationCenter.default
+            .publisher(for: Notification.Name(BluetoothNotifications.BLUETOOTH_OFF.rawValue))
+            .receive(on: RunLoop.main)
+            .sink { notification in
+                self.navigateToBluetoothOffView()
+            }
+    }
+    
+    func stopObservingBluConnectivity() {
+        bluConnectivityCancellable?.cancel()
+        bluConnectivityCancellable = nil
     }
     
     
@@ -142,6 +148,10 @@ class DiscoveryStartedViewViewModel : ObservableObject {
         shouldPresentModalSheet = false
         discoverNothingUseCase.discoverNothing()
         
+    }
+    
+    func stopObservers() {
+        NotificationCenter.default.removeObserver(self)
     }
     
     func onDeviceSelectClick() {
@@ -195,7 +205,7 @@ class DiscoveryStartedViewViewModel : ObservableObject {
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        stopObservers()
     }
     
 }

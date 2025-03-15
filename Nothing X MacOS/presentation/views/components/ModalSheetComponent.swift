@@ -14,40 +14,51 @@ struct ModalSheetComponent : View {
     let text: LocalizedStringKey?
     let topButtonText: LocalizedStringKey?
     let bottomButtonText: LocalizedStringKey?
-
+    
     let action: () -> Void
     let onCancelAction: () -> Void
     
-        var body: some View {
-            VStack {
+    var body: some View {
+        VStack {
+            
+            
             
                 
-                VStack {
-                    Spacer()
                 
+                
+                VStack {
                     
-                    VStack {
-                        
-                        if var title = title {
-                            Text(title)
-                                .font(.custom("5by7", size: 14))
-                                .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
-                                .multilineTextAlignment(.leading)
-                                .textCase(.uppercase)
-                                .padding(.bottom, 12)
-                        }
-                        
-                        if var text = text {
-                            Text(text)
-                                .lineLimit(2)
-                                .font(.system(size: 10, weight: .light))
-                                .foregroundColor(Color(#colorLiteral(red: 0.6000000238, green: 0.6000000238, blue: 0.6000000238, alpha: 1)))
-                                .multilineTextAlignment(.center)
-                        }
-          
-
+                    Spacer()
+                    
+                    if var title = title {
+                        Text(title)
+                            .font(.custom("5by7", size: 14))
+                            .foregroundColor(Color(#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0.8)))
+                            .multilineTextAlignment(.leading)
+                            .textCase(.uppercase)
+                            .padding(.bottom, 12)
+                            .padding(.top, 12)
                     }
-                    .padding(.horizontal, 18)
+                    
+                    if var text = text {
+                        Text(text)
+                            .lineLimit(2)
+                            .font(.system(size: 10, weight: .light))
+                            .foregroundColor(Color(#colorLiteral(red: 0.6000000238, green: 0.6000000238, blue: 0.6000000238, alpha: 1)))
+                            .multilineTextAlignment(.center)
+                    }
+                    
+                    Spacer()
+                    
+                    
+                }
+                .padding(.horizontal, 18)
+               
+                
+                VStack() {
+                    
+                    Spacer()
+                    
                     
                     if var topButtonText = topButtonText {
                         Button(topButtonText) {
@@ -55,7 +66,8 @@ struct ModalSheetComponent : View {
                         }
                         .buttonStyle(OffWhiteConnectButton())
                         .focusable(false)
-                        .padding()
+                        .padding(.bottom, 0)
+                        
                         
                     }
                     
@@ -68,55 +80,62 @@ struct ModalSheetComponent : View {
                         }
                         .buttonStyle(TransparentButton())
                         .focusable(false)
-                        .padding(.bottom, 18)
+                   
                     }
-                  
                 }
-        
-            }
-            .frame(width: 250, height: 180)
-//            .padding()
-            .background(Color(.modalSheet))
-//            .cornerRadius(.leading)
-            .shadow(radius: 10)
-            .clipShape(TopRoundedRectangle(radius: 18))
+                .padding(.bottom, 18)
+                
             
-            .transition(.move(edge: .bottom)) // Transition effect
             
         }
+        .frame(width: 250, height: 180)
+        //            .padding()
+        .background(Color(.modalSheet))
+        //            .cornerRadius(.leading)
+        .shadow(radius: 10)
+        .clipShape(TopRoundedRectangle(radius: 18))
+        
+        .transition(.move(edge: .bottom)) // Transition effect
+        
+    }
 }
 
 struct TopRoundedRectangle: Shape {
     var radius: CGFloat
-
+    
     func path(in rect: CGRect) -> Path {
         var path = Path()
-
+        
         // Start at the top left corner
         path.move(to: CGPoint(x: rect.minX, y: rect.minY + radius))
         // Draw the top left corner
         path.addArc(center: CGPoint(x: rect.minX + radius, y: rect.minY + radius),
-                     radius: radius,
-                     startAngle: .degrees(180),
-                     endAngle: .degrees(270),
-                     clockwise: false)
+                    radius: radius,
+                    startAngle: .degrees(180),
+                    endAngle: .degrees(270),
+                    clockwise: false)
         // Draw the top edge
         path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
         // Draw the top right corner
         path.addArc(center: CGPoint(x: rect.maxX - radius, y: rect.minY + radius),
-                     radius: radius,
-                     startAngle: .degrees(270),
-                     endAngle: .degrees(0),
-                     clockwise: false)
+                    radius: radius,
+                    startAngle: .degrees(270),
+                    endAngle: .degrees(0),
+                    clockwise: false)
         // Draw the right edge
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         // Draw the bottom edge
         path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
         // Close the path
         path.closeSubpath()
-
+        
         return path
     }
+}
+
+#Preview {
+    @State var shouldPresent = true
+    ModalSheetComponent(isPresented: $shouldPresent, title: "Title", text: "Long text description", topButtonText: "Save", bottomButtonText: "Cancel", action: {}, onCancelAction: {})
 }
 
 

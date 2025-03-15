@@ -85,3 +85,14 @@ struct ActionSelectionTitleTextStyle: ViewModifier {
     }
 }
 
+
+struct SupportedDeviceNameTextStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .offset(y: 38)
+            .font(.system(size: 8, weight: .light))
+            .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
+    }
+}
+
+

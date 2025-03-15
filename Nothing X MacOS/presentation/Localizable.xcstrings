@@ -10,6 +10,9 @@
     "%lld%% R" : {
 
     },
+    "About" : {
+
+    },
     "Add new device" : {
 
     },
@@ -61,6 +64,9 @@
     "ear (1)" : {
 
     },
+    "Ear (1)" : {
+
+    },
     "Ensure device is in pairing mode." : {
 
     },
@@ -106,6 +112,9 @@
     "NOISE CONTROL" : {
 
     },
+    "Nothing" : {
+
+    },
     "Play" : {
 
     },
@@ -122,6 +131,9 @@
 
     },
     "Set up this device" : {
+
+    },
+    "Supported devices" : {
 
     },
     "Tap & hold" : {

@@ -40,6 +40,8 @@ struct Nothing_X_MacOSApp: App {
                         case .discover_started: DiscoveryStartedView()
                         case .bluetooth_off: BluetoothIsOffView()
                             
+                        case .supported_devices: SupportedDevicesView()
+                            
                         }
                         
                         

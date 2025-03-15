@@ -22,7 +22,7 @@ class BluetoothManager: NSObject, IOBluetoothDeviceInquiryDelegate, IOBluetoothR
     private var connectedDevice: IOBluetoothDevice?
     private var rfcommChannel: IOBluetoothRFCOMMChannel?
     private var centralManager: CBCentralManager!
-    private var deviceClass: UInt32? = nil
+    private lazy var deviceClass: UInt32? = nil
     private var bluetoothState: BluetoothStates = .OFF
     
     
@@ -75,8 +75,8 @@ class BluetoothManager: NSObject, IOBluetoothDeviceInquiryDelegate, IOBluetoothR
                 BluetoothDeviceEntity(
                     name: device.name ?? "Unknown",
                     mac: device.addressString,
-                    channelId: 15, // Set channelId as needed; using 0 as a placeholder
-                    isPaired: true, // Assuming these devices are paired
+                    channelId: 15,
+                    isPaired: true,
                     isConnected: device.isConnected()
                 )
             }

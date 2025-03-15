@@ -283,12 +283,13 @@ struct DiscoveryStartedView: View {
         .frame(width: 250, height: 230)
         .background(Color.black)
         .onAppear {
+            viewModel.startObservingBluConnectivity()
             viewModel.startDiscovery()
             
         }
         .onDisappear {
+            viewModel.stopObservingBluConnectivity()
             viewModel.stopDiscovery()
-
         }
 
     }
