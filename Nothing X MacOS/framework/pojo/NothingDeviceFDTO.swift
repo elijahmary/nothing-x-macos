@@ -11,7 +11,9 @@ class NothingDeviceFDTO: ObservableObject {
     
     
     @Published var name: String = "" {
-        didSet { notifyDataUpdated() }
+        didSet {
+            objectWillChange.send()
+            notifyDataUpdated() }
     }
     @Published var serial: String = "" {
         didSet { notifyDataUpdated() }
@@ -97,24 +99,5 @@ class NothingDeviceFDTO: ObservableObject {
         NotificationCenter.default.post(name: Notification.Name(DataNotifications.DATA_UPDATED.rawValue), object: self, userInfo: nil)
     }
     
-    func printValues() {
-            print("Device Name: \(name)")
-            print("Serial Number: \(serial)")
-            print("Codename: \(codename)")
-            print("Firmware Version: \(firmware)")
-            print("SKU: \(sku)")
-            print("Left Battery: \(leftBattery)%")
-            print("Right Battery: \(rightBattery)%")
-            print("Case Battery: \(caseBattery)%")
-            print("Is Left Charging: \(isLeftCharging)")
-            print("Is Right Charging: \(isRightCharging)")
-            print("Is Case Charging: \(isCaseCharging)")
-            print("Is Left Connected: \(isLeftConnected)")
-            print("Is Right Connected: \(isRightConnected)")
-            print("Is Case Connected: \(isCaseConnected)")
-            print("ANC Status: \(anc)")
-            print("Listening Mode: \(listeningMode)")
-            print("Is Low Latency On: \(isLowLatencyOn)")
-            print("Is In-Ear Detection On: \(isInEarDetectionOn)")
-    }
+
 }

@@ -10,6 +10,10 @@
 		65715E482D76E5FE001F3E36 /* exportOptions.plist in Resources */ = {isa = PBXBuildFile; fileRef = 65715E472D76E5FE001F3E36 /* exportOptions.plist */; };
 		65715F472D799E53001F3E36 /* radio_button_not_selected_dark.png in Resources */ = {isa = PBXBuildFile; fileRef = 65715F452D799E53001F3E36 /* radio_button_not_selected_dark.png */; };
 		65715F482D799E53001F3E36 /* radio_button_selected_dark.png in Resources */ = {isa = PBXBuildFile; fileRef = 65715F462D799E53001F3E36 /* radio_button_selected_dark.png */; };
+		657668C12D83E7C100E27864 /* ReadFirmwareUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C02D83E7C100E27864 /* ReadFirmwareUnitTests.swift */; };
+		657668C32D83F14800E27864 /* ReadLatencyUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C22D83F14800E27864 /* ReadLatencyUnitTests.swift */; };
+		657668C82D84059600E27864 /* ReadANCUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C72D84059600E27864 /* ReadANCUnitTests.swift */; };
+		657668CA2D8409BD00E27864 /* ReadSerialUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C92D8409BD00E27864 /* ReadSerialUnitTests.swift */; };
 		658FEF082D7EFAC800699B1A /* bluetooth_disabled.svg in Resources */ = {isa = PBXBuildFile; fileRef = 658FEF072D7EFAC800699B1A /* bluetooth_disabled.svg */; };
 		D60A9B092992693300749EB6 /* 5by7.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D60A9B082992693300749EB6 /* 5by7.ttf */; };
 		D60A9B0A2992693300749EB6 /* 5by7.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D60A9B082992693300749EB6 /* 5by7.ttf */; };
@@ -48,6 +52,10 @@
 		65715E472D76E5FE001F3E36 /* exportOptions.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = exportOptions.plist; sourceTree = "<group>"; };
 		65715F452D799E53001F3E36 /* radio_button_not_selected_dark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = radio_button_not_selected_dark.png; sourceTree = "<group>"; };
 		65715F462D799E53001F3E36 /* radio_button_selected_dark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = radio_button_selected_dark.png; sourceTree = "<group>"; };
+		657668C02D83E7C100E27864 /* ReadFirmwareUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadFirmwareUnitTests.swift; sourceTree = "<group>"; };
+		657668C22D83F14800E27864 /* ReadLatencyUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadLatencyUnitTests.swift; sourceTree = "<group>"; };
+		657668C72D84059600E27864 /* ReadANCUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadANCUnitTests.swift; sourceTree = "<group>"; };
+		657668C92D8409BD00E27864 /* ReadSerialUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadSerialUnitTests.swift; sourceTree = "<group>"; };
 		658FEF072D7EFAC800699B1A /* bluetooth_disabled.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = bluetooth_disabled.svg; sourceTree = "<group>"; };
 		D60A9B082992693300749EB6 /* 5by7.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = 5by7.ttf; sourceTree = "<group>"; };
 		D60C145A29697E7B003E10D4 /* Nothing X MacOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Nothing X MacOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -167,6 +175,10 @@
 			isa = PBXGroup;
 			children = (
 				D60C146F29697E7C003E10D4 /* Nothing_X_MacOSTests.swift */,
+				657668C02D83E7C100E27864 /* ReadFirmwareUnitTests.swift */,
+				657668C22D83F14800E27864 /* ReadLatencyUnitTests.swift */,
+				657668C72D84059600E27864 /* ReadANCUnitTests.swift */,
+				657668C92D8409BD00E27864 /* ReadSerialUnitTests.swift */,
 			);
 			path = "Nothing X MacOSTests";
 			sourceTree = "<group>";
@@ -351,6 +363,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				657668C32D83F14800E27864 /* ReadLatencyUnitTests.swift in Sources */,
+				657668C12D83E7C100E27864 /* ReadFirmwareUnitTests.swift in Sources */,
+				657668C82D84059600E27864 /* ReadANCUnitTests.swift in Sources */,
+				657668CA2D8409BD00E27864 /* ReadSerialUnitTests.swift in Sources */,
 				D60C147029697E7C003E10D4 /* Nothing_X_MacOSTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -568,11 +584,11 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZDQ9CMTR26;
+				DEVELOPMENT_TEAM = 32ZNHQH75S;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.arunavoray.Nothing-X-MacOSTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.eldandelion.Nothing-X-MacOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -587,11 +603,11 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZDQ9CMTR26;
+				DEVELOPMENT_TEAM = 32ZNHQH75S;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.arunavoray.Nothing-X-MacOSTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.eldandelion.Nothing-X-MacOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -605,10 +621,10 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZDQ9CMTR26;
+				DEVELOPMENT_TEAM = 32ZNHQH75S;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.arunavoray.Nothing-X-MacOSUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.eldandelion.Nothing-X-MacOSUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -622,10 +638,10 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZDQ9CMTR26;
+				DEVELOPMENT_TEAM = 32ZNHQH75S;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.arunavoray.Nothing-X-MacOSUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.eldandelion.Nothing-X-MacOSUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;

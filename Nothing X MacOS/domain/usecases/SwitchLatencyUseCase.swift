@@ -16,6 +16,6 @@ class SwitchLatencyUseCase : SwitchLatencyUseCaseProtocol {
     }
     
     func switchLatency(mode: Bool) {
-        nothingService.switchLowLatency(mode: mode)
+        nothingService.switchLatency(mode: mode)
     }
 }

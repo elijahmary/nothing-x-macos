@@ -9,6 +9,6 @@ import Foundation
 
 protocol SwitchControlsUseCaseProtocol {
     
-    func switchGesture(device: DeviceType, gesture: GestureType, action: UInt8)
+    func switchGesture(device: GestureDeviceType, gesture: GestureType, action: UInt8)
     
 }

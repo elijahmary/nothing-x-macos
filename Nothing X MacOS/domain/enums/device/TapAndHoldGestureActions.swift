@@ -7,6 +7,7 @@
 
 import Foundation
 enum TapAndHoldGestureActions : UInt8, Codable {
+    
     case NOISE_CONTROL = 10
     case NO_EXTRA_ACTION = 1
 }

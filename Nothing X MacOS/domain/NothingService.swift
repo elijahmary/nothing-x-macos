@@ -29,11 +29,11 @@ protocol NothingService {
     
     func isNothingConnected() -> Bool
     
-    func switchLowLatency(mode: Bool)
+    func switchLatency(mode: Bool)
     
     func switchInEarDetection(mode: Bool)
     
-    func switchGesture(device: DeviceType, gesture: GestureType, action: UInt8)
+    func switchGesture(device: GestureDeviceType, gesture: GestureType, action: UInt8)
     
     func disconnect()
     

@@ -17,7 +17,7 @@ class BudsPickerComponentViewModel : ObservableObject {
     @Published var leftButtonOffset: CGFloat = 5
     @Published var rightButtonOffset: CGFloat = 5
     @Published var selectedBudText = "Left"
-    @Published var selection: DeviceType = .LEFT {
+    @Published var selection: GestureDeviceType = .LEFT {
         didSet {
             objectWillChange.send()
             animateSwitch()

@@ -46,7 +46,7 @@ class DiscoveryStartedViewViewModel : ObservableObject {
         self.stopNothingDiscoveryUseCase = StopNothingDiscoveryUseCase(nothingService: nothingService)
         self.isBluetoothConnectedUseCase = IsBluetoothOnUseCase(bluetoothService: bluetoothService)
         
-        NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.FOUND.rawValue), object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(forName: Notification.Name(BluetoothNotifications.FOUND.rawValue), object: nil, queue: .main) { notification in
             
             if let bluetoothDevice = notification.object as? BluetoothDeviceEntity {
                 

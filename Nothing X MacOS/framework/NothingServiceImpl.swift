@@ -8,13 +8,7 @@ import Combine
 import Foundation
 import os
 
-// Define a custom error type
-private enum DeviceError: Error {
-    case responseError(String)
-    case timeoutError(String)
-}
 
-// Define a structure to represent a request
 private struct Request {
     let command: Commands
     let operationID: UInt8
@@ -31,147 +25,189 @@ class NothingServiceImpl: NothingService {
     
     static let shared = NothingServiceImpl()
     
-    private var cancellables = Set<AnyCancellable>()
+    private lazy var cancellables = Set<AnyCancellable>()
     private let bluetoothManager = BluetoothManager.shared
-    private var currentRequest: Request? = nil
+    private lazy var currentRequest: Request? = nil
     
-    private let classOfNothing: UInt32 = 2360324
     // A queue to hold requests
-    private var requestQueue: [Request] = []
+    private lazy var requestQueue: [Request] = []
     // A semaphore to control access to the queue
     private let queueSemaphore = DispatchSemaphore(value: 1)
     private let maxRetries = 3
     // A flag to indicate if a request is currently being processed
     private var isProcessing = false
-
-    private var nothingDevice: NothingDeviceFDTO? = nil
+    
+    private lazy var nothingDevice: NothingDeviceFDTO? = nil
     
     private init() {
+        
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name(BluetoothNotifications.CONNECTED.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleDeviceConnectedNotification(_:)
+        )
+        
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name(BluetoothNotifications.DATA_RECEIVED.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleDataReceivedNotification(_:)
+        )
+        
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name(DataNotifications.DATA_UPDATED.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleDataUpdateNotification(_:)
+        )
+        
+    }
+    
+    @objc private func handleDataUpdateNotification(_ notification: Notification) {
+        if let deviceFDTO = notification.object as? NothingDeviceFDTO {
+            logger.info("Class has been updated in Nothing Service")
             
-            NotificationCenter.default.addObserver(forName: Notification.Name(BluetoothNotifications.CONNECTED.rawValue), object: nil, queue: .main) { [weak self] notification in
-                guard let self = self else { return }
-                // Handle the notification here
-                if let device = notification.object as? BluetoothDeviceEntity {
-                    nothingDevice = NothingDeviceFDTO(bluetoothDetails: device)
-                    logger.info("Nothing Device object has been created: \(nothingDevice?.name ?? "Unknown")")
-                    
-                    NotificationCenter.default.post(name: Notification.Name(DataNotifications.CONNECTED.rawValue), object: nothingDevice)
-                }
+            let nothingDeviceEntity = NothingDeviceFDTO.toEntity(deviceFDTO)
+            NotificationCenter.default.post(name: Notification.Name(DataNotifications.REPOSITORY_DATA_UPDATED.rawValue), object: nothingDeviceEntity, userInfo: nil)
+        }
+    }
+    
+    
+    @objc private func handleDataReceivedNotification(_ notification: Notification) {
+        
+        if let userInfo = notification.userInfo, let data = userInfo["data"] as? [UInt8], data.isValid() {
+            
+            logger.info("Data received in Nothing Service: \(data)")
+            
+            do {
+                try routeDataAndSave(rawData: data)
+            } catch ArrayErrors.invalidArray(let message) {
+                logger.critical("\(message)")
+            } catch {
+                logger.critical("An unexpected error occurred: \(error.localizedDescription)")
             }
             
-            NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.DATA_RECEIVED.rawValue), object: nil, queue: .main) { [weak self] notification in
-                guard let self = self else { return }
-                // Handle the notification here
-                if let userInfo = notification.userInfo, let data = userInfo["data"] as? [UInt8] {
-                    logger.info("Data received in Nothing Service: \(data)")
-                    onDataReceived(rawData: data)
-                }
+            
+            if let currentRequest = currentRequest,
+               getOperationIdFrom(rawData: data)
+                .isMatching(requestID: currentRequest.operationID)
+            {
+                currentRequest.completion(.success(()))
+                processNextRequest()
             }
             
-            NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.DATA_UPDATED.rawValue), object: nil, queue: .main) { [weak self] notification in
-                guard let self = self else { return }
-                if let deviceFramework = notification.object as? NothingDeviceFDTO {
-                    logger.info("Class has been updated in Nothing Service")
-                    
-                    let nothingDevice = NothingDeviceFDTO.toEntity(deviceFramework)
-                    NotificationCenter.default.post(name: Notification.Name(DataNotifications.REPOSITORY_DATA_UPDATED.rawValue), object: nothingDevice, userInfo: nil)
-                }
-            }
+        } else {
+            logger.critical("Received data is invalid")
+        }
+        
+    }
+    
+    @objc private func handleDeviceConnectedNotification(_ notification: Notification) {
+        if let device = notification.object as? BluetoothDeviceEntity {
+            nothingDevice = NothingDeviceFDTO(bluetoothDetails: device)
+            logger.info("Nothing Device object has been created: \(self.nothingDevice?.name ?? "Unknown")")
             
-            NotificationCenter.default.addObserver(forName: Notification.Name(BluetoothNotifications.FOUND.rawValue), object: nil, queue: .main) { [weak self] notification in
-                guard let self = self else { return }
-                logger.info("Found device")
-                if let bluetoothDevice = notification.object as? BluetoothDeviceEntity {
-                    NotificationCenter.default.post(name: Notification.Name(DataNotifications.FOUND.rawValue), object: bluetoothDevice, userInfo: nil)
+            NotificationCenter.default.post(name: Notification.Name(DataNotifications.CONNECTED.rawValue), object: nothingDevice)
+        }
+    }
+    
+    private func getOperationIdFrom(rawData: [UInt8]) -> UInt8 {
+        let idIndex = 7
+        return rawData[idIndex]
+    }
+    
+    func switchGesture(device: GestureDeviceType, gesture: GestureType, action: UInt8) {
+        let payload: [UInt8] = [0x01, device.rawValue, 0x01, gesture.rawValue, action]
+        
+        addRequest(command: Commands.SET_GESTURE, operationID: Commands.SET_GESTURE.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: payload) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                logger.info("Successfully switched gesture settings")
+                do {
+                    try setGestureConfigurations(deviceType: device, gestureType: gesture, action: action)
+                } catch Errors.invalidArgument(let message) {
+                    logger.error("\(message)")
+                } catch {
+                    logger.error("An unexpected error occurred: \(error.localizedDescription)")
                 }
+            case .failure(let error):
+                logger.error("Failed to switch gesture settings: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func stopNothingDiscovery() {
+        bluetoothManager.stopDeviceInquiry()
+    }
+    
+    func switchLatency(mode: Bool) {
+        
+        var array: [UInt8] = [0x02, 0x00]
+        if mode {
+            array[0] = 0x01
+        }
+        
+        addRequest(command: Commands.SET_LATENCY, operationID: Commands.SET_LATENCY.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: array) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                logger.info("Successfully changed latency settings \(mode)")
+                nothingDevice?.isLowLatencyOn = mode
+            case .failure(let error):
+                logger.error("Failed to change latency settings: \(error.localizedDescription)")
             }
         }
         
-        func switchGesture(device: DeviceType, gesture: GestureType, action: UInt8) {
-            let payload: [UInt8] = [0x01, device.rawValue, 0x01, gesture.rawValue, action]
-            
-            addRequest(command: Commands.SET_GESTURE, operationID: Commands.SET_GESTURE.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: payload) { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success:
-                    logger.info("Successfully switched gesture settings")
-                    updateGestureInNothing(deviceType: device, gestureType: gesture, action: action)
-                    
-                case .failure(let error):
-                    logger.error("Failed to switch gesture settings: \(error.localizedDescription)")
-                }
-            }
+    }
+    
+    func switchInEarDetection(mode: Bool) {
+        
+        var array: [UInt8] = [0x01, 0x01, 0x00]
+        
+        if mode {
+            array[2] = 0x01
         }
         
-        func stopNothingDiscovery() {
-            bluetoothManager.stopDeviceInquiry()
-        }
-        
-        func switchLowLatency(mode: Bool) {
-            
-            var array: [UInt8] = [0x02, 0x00]
-            if mode {
-                array[0] = 0x01
-            }
-            
-            addRequest(command: Commands.SET_LATENCY, operationID: Commands.SET_LATENCY.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: array) { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success:
-                    logger.info("Successfully changed latency settings \(mode)")
-                    nothingDevice?.isLowLatencyOn = mode
-                case .failure(let error):
-                    logger.error("Failed to change latency settings: \(error.localizedDescription)")
-                }
-            }
-            
-        }
-        
-        func switchInEarDetection(mode: Bool) {
-            var array: [UInt8] = [0x01, 0x01, 0x00]
-            
-            if mode {
-                array[2] = 0x01
-            }
-            
-            addRequest(command: Commands.SET_IN_EAR_STATUS, operationID: Commands.SET_IN_EAR_STATUS.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: array) { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success:
-                    logger.info("Successfully changed in-ear detection to \(mode)")
-                    nothingDevice?.isInEarDetectionOn = mode
-                case .failure(let error):
-                    logger.error("Failed to change in-ear detection: \(error.localizedDescription)")
-                }
+        addRequest(command: Commands.SET_IN_EAR_STATUS, operationID: Commands.SET_IN_EAR_STATUS.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: array) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                logger.info("Successfully changed in-ear detection to \(mode)")
+                nothingDevice?.isInEarDetectionOn = mode
+            case .failure(let error):
+                logger.error("Failed to change in-ear detection: \(error.localizedDescription)")
             }
         }
+    }
+    
+    func ringBuds() {
+        setRingBuds(right: true, left: true, doRing: true)
+    }
+    
+    func stopRingingBuds() {
+        setRingBuds(right: true, left: true, doRing: false)
+    }
+    
+    func switchANC(mode: ANC) {
         
-        func ringBuds() {
-            setRingBuds(right: true, left: true, doRing: true)
-        }
+        var byteArray: [UInt8] = [0x01, 0x01, 0x00]
+        byteArray[1] = mode.rawValue
         
-        func stopRingingBuds() {
-            setRingBuds(right: true, left: true, doRing: false)
-        }
+        logger.info("Setting ANC with byte array: \(byteArray)")
         
-        func switchANC(mode: ANC) {
-            // Initialize the byte array
-            var byteArray: [UInt8] = [0x01, 0x01, 0x00]
-            byteArray[1] = mode.rawValue
-            
-            logger.info("Setting ANC with byte array: \(byteArray)")
-            
-            addRequest(command: Commands.SET_ANC, operationID: Commands.SET_ANC.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: byteArray) { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success:
-                    logger.info("Successfully changed ANC settings")
-                    nothingDevice?.anc = mode
-                case .failure(let error):
-                    logger.error("Failed to change ANC settings: \(error.localizedDescription)")
-                }
+        addRequest(command: Commands.SET_ANC, operationID: Commands.SET_ANC.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: byteArray) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                logger.info("Successfully changed ANC settings")
+                nothingDevice?.anc = mode
+            case .failure(let error):
+                logger.error("Failed to change ANC settings: \(error.localizedDescription)")
             }
         }
+    }
     
     func switchEQ(mode: EQProfiles) {
         var byteArray: [UInt8] = [0x00, 0x00]
@@ -200,15 +236,15 @@ class NothingServiceImpl: NothingService {
         bluetoothManager.disconnectDevice()
         self.nothingDevice = nil
     }
-        
+    
     func discoverNothing() {
         
+        let classOfNothing = BluetoothDeviceClass.CLASS_OF_NOTHING.rawValue
         let pairedDevices = bluetoothManager.getPaired(withClass: Int(classOfNothing))
-        
         let connectedPaired = pairedDevices.filter({ $0.isConnected })
         
-        for c in connectedPaired {
-            NotificationCenter.default.post(name: Notification.Name(DataNotifications.FOUND.rawValue), object: c, userInfo: nil)
+        for device in connectedPaired {
+            NotificationCenter.default.post(name: Notification.Name(DataNotifications.FOUND.rawValue), object: device, userInfo: nil)
         }
         
         bluetoothManager.startDeviceInquiry(withClass: classOfNothing)
@@ -227,12 +263,12 @@ class NothingServiceImpl: NothingService {
         bluetoothManager.connectToDevice(address: address, channelID: 15)
     }
     
-    #warning("there is a change that device gets disconnected during transfer but it is low since it takes less than a second to fetch the data will fix it in the future")
+#warning("there is a change that device gets disconnected during transfer but it is low since it takes less than a second to fetch the data will fix it in the future")
     func fetchData() {
         
         logger.info("Fetching data")
         
-        if isNothingConnected(), let nothingDevice = nothingDevice {
+        if isNothingConnected() {
             
             logger.info("Adding request")
             
@@ -317,16 +353,16 @@ class NothingServiceImpl: NothingService {
             }
         }
     }
-
     
-    private func send(command: UInt16, operationID: UInt8, payload: [UInt8] = []) {
+    
+    func send(command: Commands, operationID: UInt8, payload: [UInt8] = []) {
         var header: [UInt8] = [0x55, 0x60, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00]
         
         header[7] = UInt8(operationID)
         logger.info("Operation being sent is \(operationID)")
         
         // Convert command to bytes
-        let commandBytes = withUnsafeBytes(of: command.bigEndian) { Array($0) }
+        let commandBytes = withUnsafeBytes(of: command.rawValue.bigEndian) { Array($0) }
         header[3] = commandBytes[0]
         header[4] = commandBytes[1]
         
@@ -344,7 +380,7 @@ class NothingServiceImpl: NothingService {
         // Send the data
         bluetoothManager.send(data: &header, length: UInt16(header.count))
     }
-
+    
     
     // Function to get the current request being processed
     private func getCurrentRequest() -> Request? {
@@ -408,7 +444,7 @@ class NothingServiceImpl: NothingService {
         }
         
         // Send the command and handle the response
-        send(command: request.command.rawValue, operationID: request.operationID, payload: request.payload)
+        send(command: request.command, operationID: request.operationID, payload: request.payload)
     }
     
     // Function to add a request to the queue
@@ -428,337 +464,223 @@ class NothingServiceImpl: NothingService {
             processNextRequest()
         }
     }
-
-    private func readBattery(hexString: [UInt8]) {
-        
-        var connectedDevices = 0
-        
-        let BATTERY_MASK: UInt8 = 127
-        let RECHARGING_MASK: UInt8 = 128
-        
-        // Read the number of connected devices
-        connectedDevices = Int(hexString[8])
-        
-        nothingDevice?.isCaseConnected = false
-        nothingDevice?.isLeftConnected = false
-        nothingDevice?.isRightConnected = false
-        
-        // Process each connected device
-        for i in 0..<connectedDevices {
-            let deviceId = hexString[9 + (i * 2)]
-            let batteryData = hexString[10 + (i * 2)]
-            let batteryLevel = Int(batteryData & BATTERY_MASK)
-            let isCharging = (batteryData & RECHARGING_MASK) == RECHARGING_MASK
-            
-            switch deviceId {
-            case 0x02: // Left device
-                nothingDevice?.leftBattery = batteryLevel
-                nothingDevice?.isLeftCharging = isCharging
-                nothingDevice?.isLeftConnected = true
-            case 0x03: // Right device
-                nothingDevice?.rightBattery = batteryLevel
-                nothingDevice?.isRightCharging = isCharging
-                nothingDevice?.isRightConnected = true
-            case 0x04: // Case device
-                nothingDevice?.caseBattery = batteryLevel
-                nothingDevice?.isCaseCharging = isCharging
-                nothingDevice?.isCaseConnected = true
-            default:
-                // Handle unknown device ID if necessary
-                break
-            }
-        }
-        
-        // Log battery levels
-        logger.info("Battery Left: \(self.nothingDevice?.leftBattery ?? 0), Charging: \(self.nothingDevice?.isLeftCharging ?? false)")
-        logger.info("Battery Right: \(self.nothingDevice?.rightBattery ?? 0), Charging: \(self.nothingDevice?.isRightCharging ?? false)")
-        logger.info("Battery Case: \(self.nothingDevice?.caseBattery ?? 0), Charging: \(self.nothingDevice?.isCaseCharging ?? false)")
-    }
     
-    private func readGestures(hexArray: [UInt8]) -> [(deviceType: DeviceType, gestureType: GestureType, action: UInt8)] {
-        let gestureCount: UInt8 = hexArray[8]
-        
-        var array: [(deviceType: DeviceType, gestureType: GestureType, action: UInt8)] = []
-        
-        for i in 0..<gestureCount { // Loop from 0 to gestureCount - 1
-            
-            let device = DeviceType(rawValue: hexArray[9 + Int(i) * 4]) // Assign values from hexString to the dictionary
-            
-            _ = hexArray[10 + Int(i) * 4]
-            let gesture = GestureType(rawValue: hexArray[11 + Int(i) * 4])
-            
-            if let device = device, let gesture = gesture {
-                array.append((deviceType: device, gestureType: gesture, action: hexArray[12 + Int(i) * 4]))
-            }
-            
-        }
-        logger.info("Read device gestures")
-        for a in array {
-            logger.info("device \(a.0.rawValue) gesture \(a.1.rawValue) action \(a.2)")
-        }
-        
-        return array
-        
-    }
-    
-    private func readANC(hexArray: [UInt8]) {
-        
-        let ancStatus = hexArray[9]
-        let level = ANC(rawValue: ancStatus)
-        guard let unwrappedLevel = level else {
-            return
-        }
-        nothingDevice?.anc = unwrappedLevel
-  
-        
-        logger.info("Read anc level \(unwrappedLevel.rawValue)")
-        
-        nothingDevice?.printValues()
-        
-    }
-    
-    private func readEQ(hexArray: [UInt8]) -> EQProfiles {
-        
-
-        let eqMode: UInt8 = hexArray[8]
-        logger.info("Read eqMode \(eqMode)")
-        
-        return EQProfiles(rawValue: eqMode) ?? EQProfiles.BALANCED
-        
-    }
-    
-    private func readSerial(hexPayload: [UInt8]) -> String {
-        
-        
-        var configurations: [(device: Int, type: Int, value: String)] = []
-        
-        // Decode the remaining payload and split by new lines
-        let linesData = hexPayload[7...] // Subarray from index 7 to the end
-        let lines = String(decoding: linesData, as: UTF8.self).split(separator: "\n")
-        
-        // Process each line
-        for line in lines {
-            let parts = line.split(separator: ",").map { String($0) }
-            if parts.count == 3,
-               let device = Int(parts[0]),
-               let type = Int(parts[1]),
-               let value = parts[2].nonEmpty {
-                configurations.append((device: device, type: type, value: value))
-            }
-        }
-        
-        // Filter configurations to find the serial number
-        let serialConfigs = configurations.filter { $0.type == 4 && !$0.value.isEmpty }
-        
-        logger.info("Configurations:")
-        for config in configurations {
-            logger.info("Device: \(config.device), Type: \(config.type), Value: \(config.value)")
-        }
-        // Return the serial number if found, otherwise return empty string
-        let serialValue = serialConfigs.first?.value ?? "12345678901234567"
-        logger.info("Serial: \(serialValue)")
-        return serialValue
-    }
-    
-   
-    private func readFirmware(hexArray: [UInt8]) -> String {
-        
-        // Initialize an empty string for the firmware version
-        var firmwareVersion = ""
-        
-        // Ensure that the hexArray has enough elements
-        guard hexArray.count > 8 else {
-            logger.error("hexArray does not contain enough elements")
-            return firmwareVersion // Return empty string if not enough data
-        }
-        
-        // Get the size from the hexArray
-        let size = hexArray[5]
-        
-        // Extract the firmware version based on the size
-        for i in 0..<size {
-            let index = 8 + Int(i)
-            if index < hexArray.count {
-                firmwareVersion += String(UnicodeScalar(hexArray[index]))
-            } else {
-                logger.warning("Index \(index) is out of bounds for hexArray.")
-                break
-            }
-        }
-        
-        nothingDevice?.firmware = firmwareVersion
-        print(firmwareVersion)
-        
-        return firmwareVersion
-    }
-    
-    private func readLatencyMode(hexArray: [UInt8]) -> Bool {
-        
-        return if hexArray[8] == 1 {
-            true
-        } else if hexArray[8] == 2 {
-            false
-        } else {
-            false
-        }
-        logger.info("Read latency \(hexArray[8])")
-        
-    }
-    
-    private func readInEarDetection(hexArray: [UInt8]) -> Bool {
-        logger.info("Read in-ear \(hexArray[10] != 0)")
-        return (hexArray[10] != 0)
-    }
-
     
     private func setRingBuds(right: Bool, left: Bool, doRing: Bool) {
         
-        var byteArray: [UInt8] = [0x00] // Initialize the byte array with a single element
-
-        // Assuming modelBase is a global variable or passed as a parameter
-        let modelBase = Codenames.ONE // Replace this with the actual modelBase value as needed
-
-        if modelBase == Codenames.ONE {
-            // Set the first byte based on the isRing parameter
-            byteArray[0] = doRing ? 0x01 : 0x00
-            send(command: Commands.SET_RING_BUDS.rawValue, operationID: Commands.SET_RING_BUDS.firstEightBits, payload: byteArray)
+        let leftShouldRing: UInt8 = 0x02
+        let leftShouldNotRing: UInt8 = 0x03
+        let rightShouldRing: UInt8 = 0x01
+        let rightShouldNotRing: UInt8 = 0x00
+        
+        var payload: [UInt8] = [0x00]
+        
+        if nothingDevice?.codename == Codenames.ONE {
+            
+            payload[0] = doRing ? 0x01 : 0x00
+            
         } else {
-            // If modelBase is not "B181", initialize a larger byte array
-            byteArray = [0x00, 0x00]
-            // Set the first byte based on the isLeft parameter
-            byteArray[0] = left ? 0x02 : 0x03
-            // Set the second byte based on the isRing parameter
-            byteArray[1] = right ? 0x01 : 0x00
-            send(command: Commands.SET_RING_BUDS.rawValue, operationID: Commands.SET_RING_BUDS.firstEightBits, payload: byteArray)
+            
+            payload = [0x00, 0x00]
+            
+            payload[0] = left ? leftShouldRing : leftShouldNotRing
+            payload[1] = right ? rightShouldRing : rightShouldNotRing
         }
+        
+        addRequest(command: Commands.SET_RING_BUDS, operationID: Commands.SET_RING_BUDS.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: payload, completion: {_ in })
         
     }
     
     
     
-    private func onDataReceived(rawData: [UInt8]) {
+    private func routeDataAndSave(rawData: [UInt8]) throws {
         
-        // Print hex string of the received data
-        var hexString = ""
-        for byte in rawData {
-            hexString += String(format: "%02x", byte) // Format each byte as a two-digit hex
-        }
-        logger.info("Hex string: \(hexString)")
-        
-        // Check if the first byte is 0x55 and if the length is at least 10
-        guard rawData.count >= 8, rawData[0] == 0x55 else {
-            logger.error("Invalid data: first byte is not 0x55 or data length is less than 10")
-            return
+        guard rawData.isValid() else {
+            throw ArrayErrors.invalidArray("Provided array is invalid")
         }
         
-        let executedOperationID = rawData[7]
-        
-        // Extract the header (first 6 bytes)
         let header = Array(rawData[0..<6])
-        
-        // Get the command from the header
         let command = getCommand(header: header)
         
         switch command {
             
         case Commands.READ_FIRMWARE.rawValue:
-            let firmware = readFirmware(hexArray: rawData)
+            let firmware = NothingServiceImpl.readFirmware(hexArray: rawData, logger: logger)
             nothingDevice?.firmware = firmware
-            if (nothingDevice?.sku == SKU.UNKNOWN) {
-                nothingDevice?.sku = skuFromFirmware(firmware: firmware)
-                guard let sku = nothingDevice?.sku else {
-                    return
-                }
-                nothingDevice?.codename = codenameFromSKU(sku: sku)
-            }
+            saveSKU()
+            saveCodename()
             
         case Commands.READ_SERIAL_NUMBER.rawValue:
-            let serial = readSerial(hexPayload: rawData)
-            if (!serial.isEmpty) {
-                nothingDevice?.serial = serial
-                nothingDevice?.sku = skuFromSerial(serial: serial)
+            do {
+                let serial = try NothingServiceImpl.readSerial(hexArray: rawData, logger: logger)
+                if !serial.isEmpty {
+                    nothingDevice?.serial = serial
+                    nothingDevice?.sku = skuFromSerial(serial: serial)
+                }
+                
+            } catch ArrayErrors.rangeError(let message) {
+                logger.critical("\(message)")
+            }
+
+            
+        case Commands.READ_ANC_ONE.rawValue,
+            Commands.READ_ANC_TWO.rawValue:
+            do {
+                
+                let anc = try NothingServiceImpl.readANC(hexArray: rawData, logger: logger)
+                nothingDevice?.anc = anc
+                
+            } catch ArrayErrors.rangeError(let message) {
+                logger.critical("\(message)")
+            } catch Errors.invalidArgument(let message) {
+                logger.critical("\(message)")
             }
             
-        case Commands.READ_ANC_ONE.rawValue:
-            readANC(hexArray: rawData)
+        case Commands.READ_EQ_ONE.rawValue,
+            Commands.READ_EQ_TWO.rawValue:
+            do {
+                
+                let eq = try NothingServiceImpl.readEQ(hexArray: rawData, logger: logger)
+                nothingDevice?.listeningMode = eq
+                
+            } catch ArrayErrors.rangeError(let message) {
+                logger.critical("\(message)")
+            } catch Errors.invalidArgument(let message) {
+                logger.critical("\(message)")
+            }
             
-        case Commands.READ_ANC_TWO.rawValue:
-            readANC(hexArray: rawData)
             
-        case Commands.READ_EQ_ONE.rawValue:
-            let mode = readEQ(hexArray: rawData)
-            nothingDevice?.listeningMode = mode
-            
-        case Commands.READ_EQ_TWO.rawValue:
-            let mode = readEQ(hexArray: rawData)
-            nothingDevice?.listeningMode = mode
-            
-        case Commands.READ_BATTERY_ONE.rawValue:
-            readBattery(hexString: rawData)
-            
-        case Commands.READ_BATTERY_TWO.rawValue:
-            readBattery(hexString: rawData)
-            
-        case Commands.READ_BATTERY_THREE.rawValue:
-            readBattery(hexString: rawData)
+        case Commands.READ_BATTERY_ONE.rawValue,
+            Commands.READ_BATTERY_TWO.rawValue,
+            Commands.READ_BATTERY_THREE.rawValue:
+            do {
+                
+                let configurations = try NothingServiceImpl.readBattery(hexArray: rawData, logger: logger)
+                saveBatteryConfigurations(configurations: configurations)
+                
+            } catch ArrayErrors.rangeError(let message) {
+                logger.critical("\(message)")
+                
+            }
             
         case Commands.READ_LATENCY.rawValue:
-            let latency = readLatencyMode(hexArray: rawData)
-            logger.info("LATENCY \(latency)")
-            nothingDevice?.isLowLatencyOn = latency
-            
-        case Commands.READ_IN_EAR_MODE.rawValue:
-            let inEarMode = readInEarDetection(hexArray: rawData)
-            logger.info("IN EAR MODE \(inEarMode)")
-            nothingDevice?.isInEarDetectionOn = inEarMode
-            
-        case Commands.READ_GESTURES.rawValue:
-            let result = readGestures(hexArray: rawData)
-            for device in result {
-                updateGestureInNothing(deviceType: device.0, gestureType: device.1, action: device.2)
+            do {
+                let latency = try NothingServiceImpl.readLatencyMode(hexArray: rawData, logger: logger)
+                nothingDevice?.isLowLatencyOn = latency
+                
+            } catch ArrayErrors.rangeError(let message) {
+                logger.critical("\(message)")
+            } catch Errors.invalidArgument(let message) {
+                logger.critical("\(message)")
             }
             
+            
+        case Commands.READ_IN_EAR_MODE.rawValue:
+            do {
+                let inEarMode = try NothingServiceImpl.readInEarDetection(hexArray: rawData, logger: logger)
+                nothingDevice?.isInEarDetectionOn = inEarMode
+                
+            } catch ArrayErrors.rangeError(let message) {
+                logger.critical("\(message)")
+            }
+       
+            
+        case Commands.READ_GESTURES.rawValue:
+            
+            do {
+                let gestures = try NothingServiceImpl.readGestures(hexArray: rawData, logger: logger)
+                
+                for gesture in gestures {
+                    do {
+                        try setGestureConfigurations(deviceType: gesture.0, gestureType: gesture.1, action: gesture.2)
+                    } catch {
+                        logger.critical("An unexpected error occurred: \(error.localizedDescription)")
+                    }
+                }
+                
+            } catch ArrayErrors.rangeError(let message) {
+                logger.critical("\(message)")
+            }
+      
+         
         default:
             logger.warning("Unhandled command \(command)")
         }
- 
-        if let currentRequest = currentRequest {
-            logger.info("Current request is \(currentRequest.operationID)")
-            logger.info("Executed request is \(executedOperationID)")
-            if currentRequest.operationID == executedOperationID as UInt8 {
-                currentRequest.completion(.success(()))
-            }
-        }
-        processNextRequest()
     }
     
-    private func updateGestureInNothing(deviceType: DeviceType, gestureType: GestureType, action: UInt8) {
+    private func saveSKU() {
+        if nothingDevice?.sku == SKU.UNKNOWN, let firmware = nothingDevice?.firmware {
+            nothingDevice?.sku = skuFromFirmware(firmware: firmware)
+        }
+    }
+    
+    private func saveCodename() {
+        guard let sku = nothingDevice?.sku else {
+            return
+        }
+        nothingDevice?.codename = codenameFromSKU(sku: sku)
+    }
+    
+    private func saveBatteryConfigurations(configurations: [(deviceType: BatteryDeviceType, batteryLevel: Int, isConnected: Bool, isCharging: Bool)]) {
+        
+        for configuration in configurations {
+            
+            switch configuration.deviceType {
+            case .LEFT:
+                nothingDevice?.leftBattery = configuration.batteryLevel
+                nothingDevice?.isLeftCharging = configuration.isCharging
+                nothingDevice?.isLeftConnected = configuration.isConnected
+                
+            case .RIGHT:
+                nothingDevice?.rightBattery = configuration.batteryLevel
+                nothingDevice?.isRightCharging = configuration.isCharging
+                nothingDevice?.isRightConnected = configuration.isConnected
+                
+            case .CASE:
+                nothingDevice?.caseBattery = configuration.batteryLevel
+                nothingDevice?.isCaseCharging = configuration.isCharging
+                nothingDevice?.isCaseConnected = configuration.isConnected
+            }
+        }
+        
+    }
+    
+    
+    private func setGestureConfigurations(deviceType: GestureDeviceType, gestureType: GestureType, action: UInt8) throws {
         if deviceType == .LEFT {
             if gestureType == .TAP_AND_HOLD {
-                nothingDevice?.tapAndHoldGestureActionLeft = TapAndHoldGestureActions(rawValue: action) ?? TapAndHoldGestureActions.NO_EXTRA_ACTION
-            }
-            if gestureType == .TRIPLE_TAP {
-                nothingDevice?.tripleTapGestureActionLeft = TripleTapGestureActions(rawValue: action) ?? TripleTapGestureActions.NO_EXTRA_ACTION
+                guard let actionValue = TapAndHoldGestureActions(rawValue: action) else {
+                    throw Errors.invalidArgument("In setGestureInNothing invalid argument \(action)")
+                }
+                nothingDevice?.tapAndHoldGestureActionLeft = actionValue
+            } else if gestureType == .TRIPLE_TAP {
+                guard let actionValue = TripleTapGestureActions(rawValue: action) else {
+                    throw Errors.invalidArgument("In setGestureInNothing invalid argument \(action)")
+                }
+                nothingDevice?.tripleTapGestureActionLeft = actionValue
             }
         } else if deviceType == .RIGHT {
             if gestureType == .TAP_AND_HOLD {
-                nothingDevice?.tapAndHoldGestureActionRight = TapAndHoldGestureActions(rawValue: action) ?? TapAndHoldGestureActions.NO_EXTRA_ACTION
-            }
-            if gestureType == .TRIPLE_TAP {
-                nothingDevice?.tripleTapGestureActionRight = TripleTapGestureActions(rawValue: action) ?? TripleTapGestureActions.NO_EXTRA_ACTION
+                guard let actionValue = TapAndHoldGestureActions(rawValue: action) else {
+                    throw Errors.invalidArgument("In setGestureInNothing invalid argument \(action)")
+                }
+                nothingDevice?.tapAndHoldGestureActionRight = actionValue
+            } else if gestureType == .TRIPLE_TAP {
+                guard let actionValue = TripleTapGestureActions(rawValue: action) else {
+                    throw Errors.invalidArgument("In setGestureInNothing invalid argument \(action)")
+                }
+                nothingDevice?.tripleTapGestureActionRight = actionValue
             }
         }
     }
     
     private func getCommand(header: [UInt8]) -> UInt16 {
-        // Log the header for debugging
+        
         logger.debug("header: \(header)")
         
-        // Extract command bytes from the header (bytes 3 and 4)
         let commandBytes = Array(header[3..<5])
         logger.debug("commandBytes: \(commandBytes)")
         
-        // Convert command bytes to a UInt16
         let commandInt = (UInt16(commandBytes[0]) | (UInt16(commandBytes[1]) << 8))
         logger.debug("commandInt: \(commandInt)")
         
@@ -775,5 +697,17 @@ class NothingServiceImpl: NothingService {
 extension String {
     var nonEmpty: String? {
         return isEmpty ? nil : self
+    }
+}
+
+extension Array where Element == UInt8 {
+    func isValid() -> Bool {
+        return self.count >= 8 && self[0] == 0x55
+    }
+}
+
+extension UInt8 {
+    func isMatching(requestID: UInt8) -> Bool {
+        return self == requestID
     }
 }

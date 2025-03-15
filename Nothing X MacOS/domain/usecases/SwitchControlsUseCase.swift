@@ -14,7 +14,7 @@ class SwitchControlsUseCase : SwitchControlsUseCaseProtocol {
         self.nothingService = nothingService
     }
     
-    func switchGesture(device: DeviceType, gesture: GestureType, action: UInt8) {
+    func switchGesture(device: GestureDeviceType, gesture: GestureType, action: UInt8) {
         nothingService.switchGesture(device: device, gesture: gesture, action: action)
     }
     

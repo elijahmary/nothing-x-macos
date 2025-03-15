@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum DeviceType : UInt8 {
+enum GestureDeviceType : UInt8 {
     case LEFT = 2
     case RIGHT = 3
 }

@@ -16,7 +16,7 @@ class ControlsDetailViewViewModel : ObservableObject {
     }
     
 
-    func switchTripleTapAction(device: DeviceType, action: TripleTapOptions) {
+    func switchTripleTapAction(device: GestureDeviceType, action: TripleTapOptions) {
  
         var convertedAction: TripleTapGestureActions = .NO_EXTRA_ACTION
         
@@ -34,7 +34,7 @@ class ControlsDetailViewViewModel : ObservableObject {
         switchControlsUseCase.switchGesture(device: device, gesture: .TRIPLE_TAP, action: convertedAction.rawValue)
     }
     
-    func switchTapAndHoldAction(device: DeviceType, action: TapAndHoldOptions) {
+    func switchTapAndHoldAction(device: GestureDeviceType, action: TapAndHoldOptions) {
         var convertedAction: TapAndHoldGestureActions = .NO_EXTRA_ACTION
         
         switch action {

@@ -170,7 +170,7 @@ class BluetoothManager: NSObject, IOBluetoothDeviceInquiryDelegate, IOBluetoothR
         // Convert Data to [UInt8] (byte array)
         let rawData = [UInt8](data)
         
-        NotificationCenter.default.post(name: Notification.Name(DataNotifications.DATA_RECEIVED.rawValue), object: nil, userInfo: ["data": rawData])
+        NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.DATA_RECEIVED.rawValue), object: nil, userInfo: ["data": rawData])
     }
     
     func rfcommChannelClosed(_ channel: IOBluetoothRFCOMMChannel) {

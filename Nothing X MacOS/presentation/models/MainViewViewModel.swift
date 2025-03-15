@@ -58,6 +58,7 @@ class MainViewViewModel : ObservableObject {
                         
             self.leftBattery = nil
             self.rightBattery = nil
+            self.batteryPercentage = ""
             
             withAnimation {
                 if self.getSavedDevicesUseCase.getSaved().isEmpty {

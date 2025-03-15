@@ -10,7 +10,7 @@ import SwiftUI
 struct BudsPickerComponent: View {
     
     @EnvironmentObject var viewModel: BudsPickerComponentViewModel
-    let action: (_ selection: DeviceType) -> Void
+    let action: (_ selection: GestureDeviceType) -> Void
     
     
     
@@ -67,7 +67,7 @@ struct BudsPickerComponent: View {
 struct BudsPickerComponent_Previews: PreviewProvider {
  
     struct PreviewWrapper: View {
-        @State var selection: DeviceType = .LEFT
+        @State var selection: GestureDeviceType = .LEFT
         @State var viewModel: BudsPickerComponentViewModel = BudsPickerComponentViewModel()
         var body: some View {
             BudsPickerComponent(action: {selection in })

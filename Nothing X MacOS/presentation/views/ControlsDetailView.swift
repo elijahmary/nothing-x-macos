@@ -161,7 +161,7 @@ struct ControlsDetailView: View {
                                     
                                     Button(action: {
                                
-                                        let device: DeviceType = budsPickerViewModel.selection
+                                        let device: GestureDeviceType = budsPickerViewModel.selection
                                
                                         viewModel.switchTapAndHoldAction(device: device, action: option)
                                         withAnimation {
