@@ -20,7 +20,7 @@ class EqualizerViewViewModel : ObservableObject {
         self.switchEqUseCase = SwitchEqUseCase(service: nothingService)
         
         
-        NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.REPOSITORY_DATA_UPDATED.rawValue), object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue), object: nil, queue: .main) { notification in
             
             if let device = notification.object as? NothingDeviceEntity {
                 withAnimation {

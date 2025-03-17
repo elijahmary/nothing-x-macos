@@ -96,7 +96,7 @@ class NothingDeviceFDTO: ObservableObject {
     }
     
     private func notifyDataUpdated() {
-        NotificationCenter.default.post(name: Notification.Name(DataNotifications.DATA_UPDATED.rawValue), object: self, userInfo: nil)
+//        NotificationCenter.default.post(name: Notification.Name(DataNotifications.DATA_UPDATED.rawValue), object: self, userInfo: nil)
     }
     
 

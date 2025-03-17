@@ -28,7 +28,7 @@ struct SupportedDevicesView: View {
                         Text("Supported devices")
                             .modifier(ViewTitleStyle())
                         
-                   
+                        
                         
                         Spacer()
                     }
@@ -37,55 +37,51 @@ struct SupportedDevicesView: View {
                         .modifier(SettingsSubsectionTitleStyle())
                         .padding(.top, 8)
                     
-               
+                    
                     HStack(spacing: 12) {
                         GeometryReader { geometry in
-                       
-                                RoundedRectangle(cornerRadius: 12) // Set the corner radius
-                                    .frame(width: geometry.size.width, height: geometry.size.width) // Set the size of the rectangle
-                                    .foregroundColor(Color(.modalSheet))
-                                    .overlay(
+                            
+                            RoundedRectangle(cornerRadius: 12) // Set the corner radius
+                                .frame(width: geometry.size.width, height: geometry.size.width) // Set the size of the rectangle
+                                .foregroundColor(Color(.modalSheet))
+                                .overlay(
+                                    
+                                    ZStack {
                                         
-                                        ZStack {
-                                            
-                                            Image("ear_1")
-                                                .scaledToFit()
-                                                .scaleEffect(0.6)
-                                                .offset(y: -8)
-                                              
-                                            Text("Ear (1)")
-                                                .modifier(SupportedDeviceNameTextStyle())
-                                        }
+                                        Image("ear_1")
+                                            .scaledToFit()
+                                            .scaleEffect(0.6)
+                                            .offset(y: -8)
                                         
-                                    )
+                                        Text("Ear (1)")
+                                            .modifier(SupportedDeviceNameTextStyle())
+                                    }
+                                    
+                                )
                             
                             
-                                
-                            }
-                        
-                        GeometryReader { geometry in
-                       
-                                RoundedRectangle(cornerRadius: 12) // Set the corner radius
-                                    .frame(width: geometry.size.width, height: geometry.size.width) // Set the size of the rectangle
-                                    .foregroundColor(.gray) // Set the fill color (you can change this)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12) // Overlay for border
-                                            .stroke(Color.black, lineWidth: 2) // Set the border color and width
-                                    )
-                                    .hidden()
-                                
-                            }
                             
                         }
-                    
-                    
                         
-                    
+                        GeometryReader { geometry in
+                            
+                            RoundedRectangle(cornerRadius: 12) // Set the corner radius
+                                .frame(width: geometry.size.width, height: geometry.size.width) // Set the size of the rectangle
+                                .foregroundColor(.gray) // Set the fill color (you can change this)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12) // Overlay for border
+                                        .stroke(Color.black, lineWidth: 2) // Set the border color and width
+                                )
+                                .hidden()
+                            
+                        }
                         
+                    }
+                    
                     
                 }
                 .padding(.horizontal, 16)
-           
+                
                 
             }
             

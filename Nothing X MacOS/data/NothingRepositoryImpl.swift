@@ -42,4 +42,8 @@ class NothingRepositoryImpl : NothingRepository {
         return true
     }
     
+    func isEmpty() -> Bool {
+        return encoder.isEmpty()
+    }
+    
 }

@@ -27,7 +27,7 @@ class ConnectViewViewModel : ObservableObject {
         self.nothingService = nothingService
         self.isBluetoothOnUseCase = IsBluetoothOnUseCase(bluetoothService: bluetoothService)
         
-        NotificationCenter.default.addObserver(forName: Notification.Name(DataNotifications.REPOSITORY_DATA_UPDATED.rawValue), object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue), object: nil, queue: .main) { notification in
             
             self.isLoading = false
             
@@ -66,6 +66,11 @@ class ConnectViewViewModel : ObservableObject {
         let devices = nothingRepository.getSaved()
         
         nothingService.connectToNothing(device: devices[0].bluetoothDetails)
+    }
+    
+    func navigateToBluetoothOffView() {
+        
+        NotificationCenter.default.post(name: Notification.Name(Notifications.APPEND_NAVIGATION_PATH.rawValue), object: Destination.bluetooth_off)
     }
     
     

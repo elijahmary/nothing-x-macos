@@ -16,7 +16,6 @@ struct ConnectView: View {
     
     @StateObject private var viewModel = ConnectViewViewModel(nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared, bluetoothService: BluetoothServiceImpl())
     
-    @EnvironmentObject var mainViewModel: MainViewViewModel
     
     var body: some View {
         
@@ -70,16 +69,32 @@ struct ConnectView: View {
                         
                     } else {
                         // Connect Button
-                        Button("Reconnect") {
-                            viewModel.checkBluetoothStatus()
-                            if viewModel.isBluetoothOn {
-                                viewModel.connect()
-                            } else {
-                                mainViewModel.navigateToBluetoothIsOff()
+                        if #available(macOS 14.0, *) {
+                            Button("Reconnect") {
+                                viewModel.checkBluetoothStatus()
+                                if viewModel.isBluetoothOn {
+                                    viewModel.connect()
+                                } else {
+                                    viewModel.navigateToBluetoothOffView()
+                                }
+                                
                             }
-                        
+                            .buttonStyle(OffWhiteConnectButton())
+                            .focusable(false)
+                            .focusEffectDisabled()
+                        } else {
+                            Button("Reconnect") {
+                                viewModel.checkBluetoothStatus()
+                                if viewModel.isBluetoothOn {
+                                    viewModel.connect()
+                                } else {
+                                    viewModel.navigateToBluetoothOffView()
+                                }
+                                
+                            }
+                            .buttonStyle(OffWhiteConnectButton())
+                            .focusable(false)
                         }
-                        .buttonStyle(OffWhiteConnectButton())
                         
                     }
                     

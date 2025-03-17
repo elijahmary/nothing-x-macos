@@ -38,6 +38,7 @@ class NothingServiceImpl: NothingService {
     private var isProcessing = false
     
     private lazy var nothingDevice: NothingDeviceFDTO? = nil
+    private var hasFailedRequests = false
     
     private init() {
         
@@ -54,23 +55,8 @@ class NothingServiceImpl: NothingService {
             queue: .main,
             using: handleDataReceivedNotification(_:)
         )
-        
-        NotificationCenter.default.addObserver(
-            forName: Notification.Name(DataNotifications.DATA_UPDATED.rawValue),
-            object: nil,
-            queue: .main,
-            using: handleDataUpdateNotification(_:)
-        )
-        
-    }
     
-    @objc private func handleDataUpdateNotification(_ notification: Notification) {
-        if let deviceFDTO = notification.object as? NothingDeviceFDTO {
-            logger.info("Class has been updated in Nothing Service")
-            
-            let nothingDeviceEntity = NothingDeviceFDTO.toEntity(deviceFDTO)
-            NotificationCenter.default.post(name: Notification.Name(DataNotifications.REPOSITORY_DATA_UPDATED.rawValue), object: nothingDeviceEntity, userInfo: nil)
-        }
+        
     }
     
     
@@ -95,6 +81,8 @@ class NothingServiceImpl: NothingService {
             {
                 currentRequest.completion(.success(()))
                 processNextRequest()
+            } else {
+                handleResponseResults()
             }
             
         } else {
@@ -108,7 +96,7 @@ class NothingServiceImpl: NothingService {
             nothingDevice = NothingDeviceFDTO(bluetoothDetails: device)
             logger.info("Nothing Device object has been created: \(self.nothingDevice?.name ?? "Unknown")")
             
-            NotificationCenter.default.post(name: Notification.Name(DataNotifications.CONNECTED.rawValue), object: nothingDevice)
+            NotificationCenter.default.post(name: Notification.Name(NothingServiceNotifications.CONNECTED.rawValue), object: nothingDevice)
         }
     }
     
@@ -118,15 +106,24 @@ class NothingServiceImpl: NothingService {
     }
     
     func switchGesture(device: GestureDeviceType, gesture: GestureType, action: UInt8) {
+        
         let payload: [UInt8] = [0x01, device.rawValue, 0x01, gesture.rawValue, action]
         
-        addRequest(command: Commands.SET_GESTURE, operationID: Commands.SET_GESTURE.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: payload) { [weak self] result in
+        addRequest(
+            
+            command: Commands.SET_GESTURE,
+            operationID: Commands.SET_GESTURE.firstEightBits,
+            requestTimeout: 1000,
+            responseTimeout: 1000,
+            payload: payload
+            
+        ) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success:
                 logger.info("Successfully switched gesture settings")
                 do {
-                    try setGestureConfigurations(deviceType: device, gestureType: gesture, action: action)
+                    try setGestureConfigs(deviceType: device, gestureType: gesture, action: action)
                 } catch Errors.invalidArgument(let message) {
                     logger.error("\(message)")
                 } catch {
@@ -149,7 +146,15 @@ class NothingServiceImpl: NothingService {
             array[0] = 0x01
         }
         
-        addRequest(command: Commands.SET_LATENCY, operationID: Commands.SET_LATENCY.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: array) { [weak self] result in
+        addRequest(
+            
+            command: Commands.SET_LATENCY,
+            operationID: Commands.SET_LATENCY.firstEightBits,
+            requestTimeout: 1000,
+            responseTimeout: 1000,
+            payload: array
+        
+        ) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success:
@@ -170,7 +175,15 @@ class NothingServiceImpl: NothingService {
             array[2] = 0x01
         }
         
-        addRequest(command: Commands.SET_IN_EAR_STATUS, operationID: Commands.SET_IN_EAR_STATUS.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: array) { [weak self] result in
+        addRequest(
+            
+            command: Commands.SET_IN_EAR_STATUS,
+            operationID: Commands.SET_IN_EAR_STATUS.firstEightBits,
+            requestTimeout: 1000,
+            responseTimeout: 1000,
+            payload: array
+            
+        ) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success:
@@ -192,12 +205,19 @@ class NothingServiceImpl: NothingService {
     
     func switchANC(mode: ANC) {
         
-        var byteArray: [UInt8] = [0x01, 0x01, 0x00]
-        byteArray[1] = mode.rawValue
+        let byteArray: [UInt8] = [0x01, mode.rawValue, 0x00]
         
         logger.info("Setting ANC with byte array: \(byteArray)")
         
-        addRequest(command: Commands.SET_ANC, operationID: Commands.SET_ANC.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: byteArray) { [weak self] result in
+        addRequest(
+            
+            command: Commands.SET_ANC,
+            operationID: Commands.SET_ANC.firstEightBits,
+            requestTimeout: 1000,
+            responseTimeout: 1000,
+            payload: byteArray
+            
+        ) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success:
@@ -210,10 +230,18 @@ class NothingServiceImpl: NothingService {
     }
     
     func switchEQ(mode: EQProfiles) {
-        var byteArray: [UInt8] = [0x00, 0x00]
-        byteArray[0] = mode.rawValue
         
-        addRequest(command: Commands.SET_EQ, operationID: Commands.SET_EQ.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: byteArray) { [weak self] result in
+        let byteArray: [UInt8] = [mode.rawValue, 0x00]
+        
+        addRequest(
+            
+            command: Commands.SET_EQ,
+            operationID: Commands.SET_EQ.firstEightBits,
+            requestTimeout: 1000,
+            responseTimeout: 1000,
+            payload: byteArray
+            
+        ) { [weak self] result in
             guard let self = self else {
                 return
             }
@@ -244,7 +272,7 @@ class NothingServiceImpl: NothingService {
         let connectedPaired = pairedDevices.filter({ $0.isConnected })
         
         for device in connectedPaired {
-            NotificationCenter.default.post(name: Notification.Name(DataNotifications.FOUND.rawValue), object: device, userInfo: nil)
+            NotificationCenter.default.post(name: Notification.Name(NothingServiceNotifications.FOUND.rawValue), object: device, userInfo: nil)
         }
         
         bluetoothManager.startDeviceInquiry(withClass: classOfNothing)
@@ -260,6 +288,8 @@ class NothingServiceImpl: NothingService {
     }
     
     func connectToNothing(address: String) {
+        #warning("could be invalid mac address")
+        #warning("could be invalid channelID")
         bluetoothManager.connectToDevice(address: address, channelID: 15)
     }
     
@@ -272,7 +302,14 @@ class NothingServiceImpl: NothingService {
             
             logger.info("Adding request")
             
-            addRequest(command: Commands.GET_SERIAL_NUMBER, operationID: Commands.GET_SERIAL_NUMBER.firstEightBits, requestTimeout: 1000, responseTimeout: 1000) { [weak self] result in
+            addRequest(
+                
+                command: Commands.GET_SERIAL_NUMBER,
+                operationID: Commands.GET_SERIAL_NUMBER.firstEightBits,
+                requestTimeout: 1000,
+                responseTimeout: 1000
+                
+            ) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
@@ -282,7 +319,14 @@ class NothingServiceImpl: NothingService {
                 }
             }
             
-            addRequest(command: Commands.GET_FIRMWARE, operationID: Commands.GET_FIRMWARE.firstEightBits, requestTimeout: 1000, responseTimeout: 1000) { [weak self] result in
+            addRequest(
+                
+                command: Commands.GET_FIRMWARE,
+                operationID: Commands.GET_FIRMWARE.firstEightBits,
+                requestTimeout: 1000,
+                responseTimeout: 1000
+                
+            ) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
@@ -292,7 +336,14 @@ class NothingServiceImpl: NothingService {
                 }
             }
             
-            addRequest(command: Commands.GET_BATTERY, operationID: Commands.GET_BATTERY.firstEightBits, requestTimeout: 1000, responseTimeout: 1000) { [weak self] result in
+            addRequest(
+                
+                command: Commands.GET_BATTERY,
+                operationID: Commands.GET_BATTERY.firstEightBits,
+                requestTimeout: 1000,
+                responseTimeout: 1000
+                
+            ) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
@@ -302,7 +353,14 @@ class NothingServiceImpl: NothingService {
                 }
             }
             
-            addRequest(command: Commands.GET_ANC, operationID: Commands.GET_ANC.firstEightBits, requestTimeout: 1000, responseTimeout: 1000) { [weak self] result in
+            addRequest(
+                
+                command: Commands.GET_ANC,
+                operationID: Commands.GET_ANC.firstEightBits,
+                requestTimeout: 1000,
+                responseTimeout: 1000
+                
+            ) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
@@ -312,7 +370,14 @@ class NothingServiceImpl: NothingService {
                 }
             }
             
-            addRequest(command: Commands.GET_EQ, operationID: Commands.GET_EQ.firstEightBits, requestTimeout: 1000, responseTimeout: 1000) { [weak self] result in
+            addRequest(
+                
+                command: Commands.GET_EQ,
+                operationID: Commands.GET_EQ.firstEightBits,
+                requestTimeout: 1000,
+                responseTimeout: 1000
+            
+            ) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
@@ -322,7 +387,14 @@ class NothingServiceImpl: NothingService {
                 }
             }
             
-            addRequest(command: Commands.GET_LATENCY, operationID: Commands.GET_LATENCY.firstEightBits, requestTimeout: 1000, responseTimeout: 1000) { [weak self] result in
+            addRequest(
+                
+                command: Commands.GET_LATENCY,
+                operationID: Commands.GET_LATENCY.firstEightBits,
+                requestTimeout: 1000,
+                responseTimeout: 1000
+            
+            ) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
@@ -332,7 +404,14 @@ class NothingServiceImpl: NothingService {
                 }
             }
             
-            addRequest(command: Commands.GET_IN_EAR_STATUS, operationID: Commands.GET_IN_EAR_STATUS.firstEightBits, requestTimeout: 1000, responseTimeout: 1000) { [weak self] result in
+            addRequest(
+                
+                command: Commands.GET_IN_EAR_STATUS,
+                operationID: Commands.GET_IN_EAR_STATUS.firstEightBits,
+                requestTimeout: 1000,
+                responseTimeout: 1000
+            
+            ) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
@@ -342,7 +421,14 @@ class NothingServiceImpl: NothingService {
                 }
             }
             
-            addRequest(command: Commands.GET_GESTURES, operationID: Commands.GET_GESTURES.firstEightBits, requestTimeout: 1000, responseTimeout: 1000) { [weak self] result in
+            addRequest(
+                
+                command: Commands.GET_GESTURES,
+                operationID: Commands.GET_GESTURES.firstEightBits,
+                requestTimeout: 1000,
+                responseTimeout: 1000
+            
+            ) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
@@ -389,6 +475,38 @@ class NothingServiceImpl: NothingService {
         return requestQueue.first // Return the first request in the queue
     }
     
+    private func handleResponseResults() {
+        
+    
+        if hasFailedRequests {
+            
+            self.logger.info("Failed some of the requests.")
+            
+            NotificationCenter.default.post(
+                
+                name: Notification.Name(NothingServiceNotifications.DATA_UPDATE_FAIL.rawValue),
+                object: nil,
+                userInfo: nil
+            )
+            
+        } else {
+            self.logger.info("All requests have been processed. Sending data to the user.")
+            
+            if let nothingDevice = nothingDevice {
+            
+                let nothingDeviceEntity = NothingDeviceFDTO.toEntity(nothingDevice)
+                
+                NotificationCenter.default.post(
+                    
+                    name: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue),
+                    object: nothingDeviceEntity,
+                    userInfo: nil
+                )
+            }
+            
+        }
+    }
+    
     // Function to process requests in the queue
     private func processNextRequest() {
         logger.info("Log queue: processing next request")
@@ -399,6 +517,10 @@ class NothingServiceImpl: NothingService {
             logger.info("Log queue: queue is empty")
             isProcessing = false
             queueSemaphore.signal()
+            
+            handleResponseResults()
+            hasFailedRequests = false
+          
             return
         }
         
@@ -436,6 +558,7 @@ class NothingServiceImpl: NothingService {
                     logger.info("Maximum retries reached for request. Not re-adding to queue.")
                     request.completion(.failure(DeviceError.timeoutError("Maximum retries reached.")))
                     self.isProcessing = false
+                    self.hasFailedRequests = true
                     
                     // Process the next request
                     self.processNextRequest()
@@ -461,6 +584,7 @@ class NothingServiceImpl: NothingService {
         
         // Start processing if not already processing
         if !isProcessing {
+            hasFailedRequests = false
             processNextRequest()
         }
     }
@@ -556,7 +680,7 @@ class NothingServiceImpl: NothingService {
             do {
                 
                 let configurations = try NothingServiceImpl.readBattery(hexArray: rawData, logger: logger)
-                saveBatteryConfigurations(configurations: configurations)
+                saveBatteryConfigs(configs: configurations)
                 
             } catch ArrayErrors.rangeError(let message) {
                 logger.critical("\(message)")
@@ -592,7 +716,7 @@ class NothingServiceImpl: NothingService {
                 
                 for gesture in gestures {
                     do {
-                        try setGestureConfigurations(deviceType: gesture.0, gestureType: gesture.1, action: gesture.2)
+                        try setGestureConfigs(deviceType: gesture.0, gestureType: gesture.1, action: gesture.2)
                     } catch {
                         logger.critical("An unexpected error occurred: \(error.localizedDescription)")
                     }
@@ -621,9 +745,9 @@ class NothingServiceImpl: NothingService {
         nothingDevice?.codename = codenameFromSKU(sku: sku)
     }
     
-    private func saveBatteryConfigurations(configurations: [(deviceType: BatteryDeviceType, batteryLevel: Int, isConnected: Bool, isCharging: Bool)]) {
+    private func saveBatteryConfigs(configs: [(deviceType: BatteryDeviceType, batteryLevel: Int, isConnected: Bool, isCharging: Bool)]) {
         
-        for configuration in configurations {
+        for configuration in configs {
             
             switch configuration.deviceType {
             case .LEFT:
@@ -646,7 +770,7 @@ class NothingServiceImpl: NothingService {
     }
     
     
-    private func setGestureConfigurations(deviceType: GestureDeviceType, gestureType: GestureType, action: UInt8) throws {
+    private func setGestureConfigs(deviceType: GestureDeviceType, gestureType: GestureType, action: UInt8) throws {
         if deviceType == .LEFT {
             if gestureType == .TAP_AND_HOLD {
                 guard let actionValue = TapAndHoldGestureActions(rawValue: action) else {

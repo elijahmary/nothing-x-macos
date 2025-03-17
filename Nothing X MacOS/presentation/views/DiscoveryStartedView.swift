@@ -19,7 +19,7 @@ struct DiscoveryStartedView: View {
     
     
     private let title: LocalizedStringKey? = "Can't find your device?"
-    private let text: LocalizedStringKey? = "Make sure device is on and in discovery mode."
+    private let text: LocalizedStringKey? = "Try connecting your device through bluetooth settings first."
     private let topButtonText: LocalizedStringKey? = "Retry"
     private let bottomButtonText: LocalizedStringKey? = "Cancel"
 

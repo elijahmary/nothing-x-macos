@@ -19,6 +19,8 @@ protocol NothingRepository {
     func contains(mac: String) -> Bool
     
     func delete(mac: String)
+    
+    func isEmpty() -> Bool
 
     
 }

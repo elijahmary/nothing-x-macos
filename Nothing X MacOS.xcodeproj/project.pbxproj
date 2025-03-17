@@ -14,6 +14,7 @@
 		657668C32D83F14800E27864 /* ReadLatencyUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C22D83F14800E27864 /* ReadLatencyUnitTests.swift */; };
 		657668C82D84059600E27864 /* ReadANCUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C72D84059600E27864 /* ReadANCUnitTests.swift */; };
 		657668CA2D8409BD00E27864 /* ReadSerialUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C92D8409BD00E27864 /* ReadSerialUnitTests.swift */; };
+		657668F22D857A1A00E27864 /* CRC16UnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668F12D857A1A00E27864 /* CRC16UnitTests.swift */; };
 		658FEF082D7EFAC800699B1A /* bluetooth_disabled.svg in Resources */ = {isa = PBXBuildFile; fileRef = 658FEF072D7EFAC800699B1A /* bluetooth_disabled.svg */; };
 		D60A9B092992693300749EB6 /* 5by7.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D60A9B082992693300749EB6 /* 5by7.ttf */; };
 		D60A9B0A2992693300749EB6 /* 5by7.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D60A9B082992693300749EB6 /* 5by7.ttf */; };
@@ -56,6 +57,7 @@
 		657668C22D83F14800E27864 /* ReadLatencyUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadLatencyUnitTests.swift; sourceTree = "<group>"; };
 		657668C72D84059600E27864 /* ReadANCUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadANCUnitTests.swift; sourceTree = "<group>"; };
 		657668C92D8409BD00E27864 /* ReadSerialUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadSerialUnitTests.swift; sourceTree = "<group>"; };
+		657668F12D857A1A00E27864 /* CRC16UnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRC16UnitTests.swift; sourceTree = "<group>"; };
 		658FEF072D7EFAC800699B1A /* bluetooth_disabled.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = bluetooth_disabled.svg; sourceTree = "<group>"; };
 		D60A9B082992693300749EB6 /* 5by7.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = 5by7.ttf; sourceTree = "<group>"; };
 		D60C145A29697E7B003E10D4 /* Nothing X MacOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Nothing X MacOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -179,6 +181,7 @@
 				657668C22D83F14800E27864 /* ReadLatencyUnitTests.swift */,
 				657668C72D84059600E27864 /* ReadANCUnitTests.swift */,
 				657668C92D8409BD00E27864 /* ReadSerialUnitTests.swift */,
+				657668F12D857A1A00E27864 /* CRC16UnitTests.swift */,
 			);
 			path = "Nothing X MacOSTests";
 			sourceTree = "<group>";
@@ -364,6 +367,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				657668C32D83F14800E27864 /* ReadLatencyUnitTests.swift in Sources */,
+				657668F22D857A1A00E27864 /* CRC16UnitTests.swift in Sources */,
 				657668C12D83E7C100E27864 /* ReadFirmwareUnitTests.swift in Sources */,
 				657668C82D84059600E27864 /* ReadANCUnitTests.swift in Sources */,
 				657668CA2D8409BD00E27864 /* ReadSerialUnitTests.swift in Sources */,
