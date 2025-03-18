@@ -28,20 +28,30 @@ class SettingsViewViewModel : ObservableObject {
     @Published private(set) var nothingDevice: NothingDeviceEntity?
     
     
-    init(nothingService: NothingService, nothingRepository: NothingRepository) {
-        self.switchLatencyUseCase = SwitchLatencyUseCase(nothingService: nothingService)
-        self.switchInEarDetectionUseCase = SwitchInEarDetectionUseCase(nothingService: nothingService)
-        self.deleteSavedDeviceUseCase = DeleteSavedDeviceUseCase(nothingRepository: nothingRepository)
-        self.getSavedDevicesUseCase = GetSavedDevicesUseCase(nothingRepository: nothingRepository)
-        self.isNothingConnectedUseCase = IsNothingConnectedUseCase(nothingService: nothingService)
+    init(
+        
+        switchLatencyUseCase: SwitchLatencyUseCaseProtocol,
+        switchInEarDetectionUseCase: SwitchInEarDetectionUseCaseProtocol,
+        deleteSavedDeviceUseCase: DeleteSavedUseCaseProtocol,
+        getSavedDevicesUseCase: GetSavedDevicesUseCaseProtocol,
+        isNothingConnectedUseCase: IsNothingConnectedUseCaseProtocol
+        
+    ) {
+        
+        self.switchLatencyUseCase = switchLatencyUseCase
+        self.switchInEarDetectionUseCase = switchInEarDetectionUseCase
+        self.deleteSavedDeviceUseCase = deleteSavedDeviceUseCase
+        self.getSavedDevicesUseCase = getSavedDevicesUseCase
+        self.isNothingConnectedUseCase = isNothingConnectedUseCase
         
         
-        NotificationCenter.default.addObserver(forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue), object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(
             
-            if let device = notification.object as? NothingDeviceEntity {
-                self.updateDeviceDetails(device: device)
-            }
-        }
+            forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleDataUpdateSuccessNotification(_:)
+        )
         
         isNothingDeviceAccessible = isNothingConnectedUseCase.isNothingConnected()
         
@@ -49,7 +59,15 @@ class SettingsViewViewModel : ObservableObject {
         
     }
     
+    @objc private func handleDataUpdateSuccessNotification(_ notification: Notification) {
+        
+        if let device = notification.object as? NothingDeviceEntity {
+            self.updateDeviceDetails(device: device)
+        }
+    }
+    
     private func setDeviceDetails() {
+        
         let devices = getSavedDevicesUseCase.getSaved()
         if (!devices.isEmpty) {
             name = devices[0].bluetoothDetails.name

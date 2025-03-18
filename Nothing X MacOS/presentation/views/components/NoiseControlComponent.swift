@@ -10,7 +10,8 @@ import SwiftUI
 struct NoiseControlComponent<SelectedANC: Hashable>: View {
     
     
-    @StateObject private var viewModel = NoiseControlViewViewModel(nothingService: NothingServiceImpl.shared)
+    @StateObject private var viewModel = AppContainer.shared.container
+        .resolve(NoiseControlViewViewModel.self)!
     
     @Binding var selection: SelectedANC
     

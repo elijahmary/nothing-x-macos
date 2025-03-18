@@ -16,7 +16,9 @@ struct FindMyBudsView: View {
     
     @ObservedObject private var animation = PulsingCirclesAnimation.shared
     
-    @StateObject private var viewModel = FindMyBudsViewViewModel(nothingService: NothingServiceImpl.shared)
+    @StateObject private var viewModel =
+    AppContainer.shared.container.resolve(FindMyBudsViewViewModel.self)!
+    
     @State private var isRunning = false
     
     var body: some View {

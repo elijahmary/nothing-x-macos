@@ -11,9 +11,7 @@ struct DiscoveryStartedView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @ObservedObject private var viewModel = DiscoveryStartedViewViewModel(
-        nothingService: NothingServiceImpl.shared,
-        bluetoothService: BluetoothServiceImpl())
+    @ObservedObject private var viewModel = AppContainer.shared.container.resolve(DiscoveryStartedViewViewModel.self)!
 
     @ObservedObject private var animation = PulsingCirclesAnimation.shared
     
@@ -251,7 +249,7 @@ struct DiscoveryStartedView: View {
             }
             .zIndex(2)
 
-            if viewModel.showSetUpButton {
+            if viewModel.shouldShowSetUpButton {
 
                 VStack {
                     Spacer()

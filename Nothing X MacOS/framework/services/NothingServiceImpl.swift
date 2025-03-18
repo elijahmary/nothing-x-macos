@@ -29,16 +29,16 @@ class NothingServiceImpl: NothingService {
     private let bluetoothManager = BluetoothManager.shared
     private lazy var currentRequest: Request? = nil
     
-    // A queue to hold requests
+    
     private lazy var requestQueue: [Request] = []
-    // A semaphore to control access to the queue
+    
     private let queueSemaphore = DispatchSemaphore(value: 1)
     private let maxRetries = 3
-    // A flag to indicate if a request is currently being processed
     private var isProcessing = false
+    private var hasFailedRequests = false
     
     private lazy var nothingDevice: NothingDeviceFDTO? = nil
-    private var hasFailedRequests = false
+    
     
     private init() {
         
@@ -257,7 +257,17 @@ class NothingServiceImpl: NothingService {
     }
     
     func connectToNothing(device: BluetoothDeviceEntity) {
-        bluetoothManager.connectToDevice(address: device.mac, channelID: device.channelId)
+        do {
+            
+            try bluetoothManager.connectToDevice(address: device.mac, channelID: device.channelId)
+            
+        } catch  Errors.invalidArgument(let message) {
+            logger.error("\(message)")
+        } catch {
+            logger.critical("An unexpected error occurred: \(error.localizedDescription)")
+            
+        }
+        
     }
     
     func disconnect() {
@@ -288,9 +298,18 @@ class NothingServiceImpl: NothingService {
     }
     
     func connectToNothing(address: String) {
-        #warning("could be invalid mac address")
-        #warning("could be invalid channelID")
-        bluetoothManager.connectToDevice(address: address, channelID: 15)
+#warning("could be invalid channelID")
+        
+        do {
+            
+            try bluetoothManager.connectToDevice(address: address, channelID: 15)
+            
+        } catch  Errors.invalidArgument(let message) {
+            logger.error("\(message)")
+        } catch {
+            logger.critical("An unexpected error occurred: \(error.localizedDescription)")
+            
+        }
     }
     
 #warning("there is a change that device gets disconnected during transfer but it is low since it takes less than a second to fetch the data will fix it in the future")
@@ -507,87 +526,6 @@ class NothingServiceImpl: NothingService {
         }
     }
     
-    // Function to process requests in the queue
-    private func processNextRequest() {
-        logger.info("Log queue: processing next request")
-        queueSemaphore.wait()
-        
-        // Check if there are requests in the queue
-        guard !requestQueue.isEmpty else {
-            logger.info("Log queue: queue is empty")
-            isProcessing = false
-            queueSemaphore.signal()
-            
-            handleResponseResults()
-            hasFailedRequests = false
-          
-            return
-        }
-        
-        // Get the next request from the queue
-        var request = requestQueue.removeFirst()
-        currentRequest = request
-        logger.info("Log queue: first request in queue is \(request.operationID)")
-        isProcessing = true
-        queueSemaphore.signal()
-        
-        // Set a timeout for the request
-        let requestTimeout = DispatchTime.now() + request.requestTimeout
-        DispatchQueue.global().asyncAfter(deadline: requestTimeout) { [weak self] in
-            guard let self = self else { return }
-            if self.isProcessing {
-                logger.info("Request timed out, attempting to repeat")
-                // Increment the retry count
-                request.retryCount += 1
-                
-                // Check if the retry count exceeds the maximum allowed
-                if request.retryCount <= self.maxRetries {
-                    // Re-add the request to the queue
-                    self.queueSemaphore.wait()
-                    self.requestQueue.append(request) // Re-add the request
-                    self.queueSemaphore.signal()
-                    
-                    // Call the completion handler with a timeout error
-                    request.completion(.failure(DeviceError.timeoutError("Request timed out.")))
-                    self.isProcessing = false
-                    
-                    // Process the next request
-                    self.processNextRequest()
-                } else {
-                    // Handle the case where the maximum retries have been reached
-                    logger.info("Maximum retries reached for request. Not re-adding to queue.")
-                    request.completion(.failure(DeviceError.timeoutError("Maximum retries reached.")))
-                    self.isProcessing = false
-                    self.hasFailedRequests = true
-                    
-                    // Process the next request
-                    self.processNextRequest()
-                }
-            }
-        }
-        
-        // Send the command and handle the response
-        send(command: request.command, operationID: request.operationID, payload: request.payload)
-    }
-    
-    // Function to add a request to the queue
-    private func addRequest(command: Commands, operationID: UInt8, requestTimeout: TimeInterval, responseTimeout: TimeInterval, payload: [UInt8] = [], completion: @escaping (Result<Void, Error>) -> Void) {
-        
-        let requestTimeoutInSeconds = TimeInterval(requestTimeout) / 1000.0
-        let responseTimeoutInSeconds = TimeInterval(responseTimeout) / 1000.0
-        
-        let request = Request(command: command, operationID: operationID, payload: payload, completion: completion, requestTimeout: requestTimeoutInSeconds, responseTimeout: responseTimeoutInSeconds)
-        
-        queueSemaphore.wait()
-        requestQueue.append(request) // Append the request to the queue
-        queueSemaphore.signal()
-        
-        // Start processing if not already processing
-        if !isProcessing {
-            hasFailedRequests = false
-            processNextRequest()
-        }
-    }
     
     
     private func setRingBuds(right: Bool, left: Bool, doRing: Bool) {
@@ -614,11 +552,9 @@ class NothingServiceImpl: NothingService {
         addRequest(command: Commands.SET_RING_BUDS, operationID: Commands.SET_RING_BUDS.firstEightBits, requestTimeout: 1000, responseTimeout: 1000, payload: payload, completion: {_ in })
         
     }
-    
-    
+
     
     private func routeDataAndSave(rawData: [UInt8]) throws {
-        
         guard rawData.isValid() else {
             throw ArrayErrors.invalidArray("Provided array is invalid")
         }
@@ -626,109 +562,82 @@ class NothingServiceImpl: NothingService {
         let header = Array(rawData[0..<6])
         let command = getCommand(header: header)
         
-        switch command {
-            
-        case Commands.READ_FIRMWARE.rawValue:
-            let firmware = NothingServiceImpl.readFirmware(hexArray: rawData, logger: logger)
-            nothingDevice?.firmware = firmware
-            saveSKU()
-            saveCodename()
-            
-        case Commands.READ_SERIAL_NUMBER.rawValue:
-            do {
-                let serial = try NothingServiceImpl.readSerial(hexArray: rawData, logger: logger)
-                if !serial.isEmpty {
-                    nothingDevice?.serial = serial
-                    nothingDevice?.sku = skuFromSerial(serial: serial)
-                }
-                
-            } catch ArrayErrors.rangeError(let message) {
-                logger.critical("\(message)")
+        let commandHandlers: [UInt16: (Array<UInt8>) throws -> Void] = [
+            Commands.READ_FIRMWARE.rawValue: handleReadFirmware,
+            Commands.READ_SERIAL_NUMBER.rawValue: handleReadSerial,
+            Commands.READ_ANC_ONE.rawValue: handleReadANC,
+            Commands.READ_ANC_TWO.rawValue: handleReadANC,
+            Commands.READ_EQ_ONE.rawValue: handleReadEQ,
+            Commands.READ_EQ_TWO.rawValue: handleReadEQ,
+            Commands.READ_BATTERY_ONE.rawValue: handleReadBattery,
+            Commands.READ_BATTERY_TWO.rawValue: handleReadBattery,
+            Commands.READ_BATTERY_THREE.rawValue: handleReadBattery,
+            Commands.READ_LATENCY.rawValue: handleReadLatency,
+            Commands.READ_IN_EAR_MODE.rawValue: handleReadInEarMode,
+            Commands.READ_GESTURES.rawValue: handleReadGestures
+        ]
+        
+        do {
+            if let handler = commandHandlers[command] {
+                try handler(rawData)
+            } else {
+                logger.warning("Unhandled command \(command)")
             }
+        } catch {
+            logger.critical("An unexpected error occurred: \(error.localizedDescription)")
+        }
+    }
 
-            
-        case Commands.READ_ANC_ONE.rawValue,
-            Commands.READ_ANC_TWO.rawValue:
+
+    private func handleReadFirmware(rawData: [UInt8]) throws {
+        let firmware = NothingServiceImpl.readFirmware(hexArray: rawData, logger: logger)
+        nothingDevice?.firmware = firmware
+        saveSKU()
+        saveCodename()
+    }
+
+    private func handleReadSerial(rawData: [UInt8]) throws {
+        let serial = try NothingServiceImpl.readSerial(hexArray: rawData, logger: logger)
+        if !serial.isEmpty {
+            nothingDevice?.serial = serial
+            nothingDevice?.sku = skuFromSerial(serial: serial)
+        }
+    }
+
+    private func handleReadANC(rawData: [UInt8]) throws {
+        let anc = try NothingServiceImpl.readANC(hexArray: rawData, logger: logger)
+        nothingDevice?.anc = anc
+    }
+
+    private func handleReadEQ(rawData: [UInt8]) throws {
+        let eq = try NothingServiceImpl.readEQ(hexArray: rawData, logger: logger)
+        nothingDevice?.listeningMode = eq
+    }
+
+    private func handleReadBattery(rawData: [UInt8]) throws {
+        let configs = try NothingServiceImpl.readBattery(hexArray: rawData, logger: logger)
+        saveBatteryConfigs(configs: configs)
+    }
+
+    private func handleReadLatency(rawData: [UInt8]) throws {
+        let latency = try NothingServiceImpl.readLatencyMode(hexArray: rawData, logger: logger)
+        nothingDevice?.isLowLatencyOn = latency
+    }
+
+    private func handleReadInEarMode(rawData: [UInt8]) throws {
+        let inEarMode = try NothingServiceImpl.readInEarDetection(hexArray: rawData, logger: logger)
+        nothingDevice?.isInEarDetectionOn = inEarMode
+    }
+
+    private func handleReadGestures(rawData: [UInt8]) throws {
+        let gestures = try NothingServiceImpl.readGestures(hexArray: rawData, logger: logger)
+        
+        for gesture in gestures {
             do {
-                
-                let anc = try NothingServiceImpl.readANC(hexArray: rawData, logger: logger)
-                nothingDevice?.anc = anc
-                
-            } catch ArrayErrors.rangeError(let message) {
-                logger.critical("\(message)")
-            } catch Errors.invalidArgument(let message) {
-                logger.critical("\(message)")
+                try setGestureConfigs(deviceType: gesture.0, gestureType: gesture.1, action: gesture.2)
+            } catch {
+                logger.critical("An unexpected error occurred: \(error.localizedDescription)")
             }
-            
-        case Commands.READ_EQ_ONE.rawValue,
-            Commands.READ_EQ_TWO.rawValue:
-            do {
-                
-                let eq = try NothingServiceImpl.readEQ(hexArray: rawData, logger: logger)
-                nothingDevice?.listeningMode = eq
-                
-            } catch ArrayErrors.rangeError(let message) {
-                logger.critical("\(message)")
-            } catch Errors.invalidArgument(let message) {
-                logger.critical("\(message)")
-            }
-            
-            
-        case Commands.READ_BATTERY_ONE.rawValue,
-            Commands.READ_BATTERY_TWO.rawValue,
-            Commands.READ_BATTERY_THREE.rawValue:
-            do {
-                
-                let configurations = try NothingServiceImpl.readBattery(hexArray: rawData, logger: logger)
-                saveBatteryConfigs(configs: configurations)
-                
-            } catch ArrayErrors.rangeError(let message) {
-                logger.critical("\(message)")
-                
-            }
-            
-        case Commands.READ_LATENCY.rawValue:
-            do {
-                let latency = try NothingServiceImpl.readLatencyMode(hexArray: rawData, logger: logger)
-                nothingDevice?.isLowLatencyOn = latency
-                
-            } catch ArrayErrors.rangeError(let message) {
-                logger.critical("\(message)")
-            } catch Errors.invalidArgument(let message) {
-                logger.critical("\(message)")
-            }
-            
-            
-        case Commands.READ_IN_EAR_MODE.rawValue:
-            do {
-                let inEarMode = try NothingServiceImpl.readInEarDetection(hexArray: rawData, logger: logger)
-                nothingDevice?.isInEarDetectionOn = inEarMode
-                
-            } catch ArrayErrors.rangeError(let message) {
-                logger.critical("\(message)")
-            }
-       
-            
-        case Commands.READ_GESTURES.rawValue:
-            
-            do {
-                let gestures = try NothingServiceImpl.readGestures(hexArray: rawData, logger: logger)
-                
-                for gesture in gestures {
-                    do {
-                        try setGestureConfigs(deviceType: gesture.0, gestureType: gesture.1, action: gesture.2)
-                    } catch {
-                        logger.critical("An unexpected error occurred: \(error.localizedDescription)")
-                    }
-                }
-                
-            } catch ArrayErrors.rangeError(let message) {
-                logger.critical("\(message)")
-            }
-      
-         
-        default:
-            logger.warning("Unhandled command \(command)")
         }
     }
     
@@ -813,6 +722,88 @@ class NothingServiceImpl: NothingService {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+    }
+    
+    // Function to add a request to the queue
+    private func addRequest(command: Commands, operationID: UInt8, requestTimeout: TimeInterval, responseTimeout: TimeInterval, payload: [UInt8] = [], completion: @escaping (Result<Void, Error>) -> Void) {
+        
+        let requestTimeoutInSeconds = TimeInterval(requestTimeout) / 1000.0
+        let responseTimeoutInSeconds = TimeInterval(responseTimeout) / 1000.0
+        
+        let request = Request(command: command, operationID: operationID, payload: payload, completion: completion, requestTimeout: requestTimeoutInSeconds, responseTimeout: responseTimeoutInSeconds)
+        
+        queueSemaphore.wait()
+        requestQueue.append(request) // Append the request to the queue
+        queueSemaphore.signal()
+        
+        // Start processing if not already processing
+        if !isProcessing {
+            hasFailedRequests = false
+            processNextRequest()
+        }
+    }
+    
+    // Function to process requests in the queue
+    private func processNextRequest() {
+        logger.info("Log queue: processing next request")
+        queueSemaphore.wait()
+        
+        // Check if there are requests in the queue
+        guard !requestQueue.isEmpty else {
+            logger.info("Log queue: queue is empty")
+            isProcessing = false
+            queueSemaphore.signal()
+            
+            handleResponseResults()
+            hasFailedRequests = false
+          
+            return
+        }
+        
+        // Get the next request from the queue
+        var request = requestQueue.removeFirst()
+        currentRequest = request
+        logger.info("Log queue: first request in queue is \(request.operationID)")
+        isProcessing = true
+        queueSemaphore.signal()
+        
+        // Set a timeout for the request
+        let requestTimeout = DispatchTime.now() + request.requestTimeout
+        DispatchQueue.global().asyncAfter(deadline: requestTimeout) { [weak self] in
+            guard let self = self else { return }
+            if self.isProcessing {
+                logger.info("Request timed out, attempting to repeat")
+                // Increment the retry count
+                request.retryCount += 1
+                
+                // Check if the retry count exceeds the maximum allowed
+                if request.retryCount <= self.maxRetries {
+                    // Re-add the request to the queue
+                    self.queueSemaphore.wait()
+                    self.requestQueue.append(request) // Re-add the request
+                    self.queueSemaphore.signal()
+                    
+                    // Call the completion handler with a timeout error
+                    request.completion(.failure(DeviceError.timeoutError("Request timed out.")))
+                    self.isProcessing = false
+                    
+                    // Process the next request
+                    self.processNextRequest()
+                } else {
+                    // Handle the case where the maximum retries have been reached
+                    logger.info("Maximum retries reached for request. Not re-adding to queue.")
+                    request.completion(.failure(DeviceError.timeoutError("Maximum retries reached.")))
+                    self.isProcessing = false
+                    self.hasFailedRequests = true
+                    
+                    // Process the next request
+                    self.processNextRequest()
+                }
+            }
+        }
+        
+        // Send the command and handle the response
+        send(command: request.command, operationID: request.operationID, payload: request.payload)
     }
     
 }

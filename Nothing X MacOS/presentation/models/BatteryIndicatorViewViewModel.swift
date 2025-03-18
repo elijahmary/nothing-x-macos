@@ -10,86 +10,104 @@ import SwiftUI
 
 
 class BatteryIndicatorViewViewModel : ObservableObject {
-    @Published var leftBattery: Int = 0;
-    @Published var rightBattery: Int = 0;
-    @Published var caseBattery: Int = 0;
-    @Published var isLeftCharging = false;
-    @Published var isRightCharging = false;
-    @Published var isCaseCharging = false;
-    @Published var isLeftConnected = false;
-    @Published var isRightConnected = false;
-    @Published var isCaseConnected = true;
+    
+    @Published private(set) var leftBattery: Int = 0;
+    @Published private(set) var rightBattery: Int = 0;
+    @Published private(set) var caseBattery: Int = 0;
+    @Published private(set) var isLeftCharging = false;
+    @Published private(set) var isRightCharging = false;
+    @Published private(set) var isCaseCharging = false;
+    @Published private(set) var isLeftConnected = false;
+    @Published private(set) var isRightConnected = false;
+    @Published private(set) var isCaseConnected = true;
     
     init() {
         
-        NotificationCenter.default.addObserver(forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue), object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleDataUpdateSuccessNotification(_:)
+        )
+    }
+    
+    
+    
+    @objc private func handleDataUpdateSuccessNotification(_ notification: Notification) {
+        if let device = notification.object as? NothingDeviceEntity {
             
-            if let device = notification.object as? NothingDeviceEntity {
-                
-                #warning("gotta fix the flickering")
-                
-                if self.leftBattery != device.leftBattery {
-                    self.leftBattery = device.leftBattery
-                }
-                
-                if self.caseBattery != device.caseBattery {
-                    self.caseBattery = device.caseBattery
-                }
-                
-                if self.rightBattery != device.rightBattery {
-                    self.rightBattery = device.rightBattery
-                }
-               
-                
-                
-                if self.isRightCharging != device.isRightCharging {
-                    withAnimation {
-                        self.isRightCharging = device.isRightCharging
-                    }
-                }
-                
-                if self.isLeftCharging != device.isLeftCharging {
-                    withAnimation {
-                        self.isLeftCharging = device.isLeftCharging
-                    }
-                }
-                
-                if self.isCaseCharging != device.isCaseCharging {
-                    withAnimation {
-                        self.isCaseCharging = device.isCaseCharging
-                    }
-                }
-                
-                if self.isRightConnected != device.isRightConnected {
-                    withAnimation {
-                        self.isRightConnected = device.isRightConnected
-                    }
-                    
-                }
-                
-                if self.isLeftConnected != device.isLeftConnected {
-                    withAnimation {
-                        self.isLeftConnected = device.isLeftConnected
-                    }
-                    
-                }
-                
-                if self.isCaseConnected != device.isCaseConnected {
-                    withAnimation {
-                        self.isCaseConnected = device.isCaseConnected
-                    }
-                    
-                }
-                
+            
+            setBatteryPercentage(newLeftBattery: device.leftBattery, newRightBattery: device.rightBattery, newCaseBattery: device.caseBattery)
+            
+            setChargingState(newIsLeftCharging: device.isLeftCharging, newIsRightCharging: device.isRightCharging, newIsCaseCharging: device.isCaseCharging)
+            
+            setVisibilityState(newIsLeftConnected: device.isLeftConnected, newIsRightConnected: device.isRightConnected, newIsCaseConnected: device.isCaseConnected)
+            
+        }
+    }
+    
+    private func setBatteryPercentage(newLeftBattery: Int, newRightBattery: Int, newCaseBattery: Int) {
+        
+        if self.leftBattery != newLeftBattery {
+            self.leftBattery = newLeftBattery
+        }
+        
+        if self.caseBattery != newCaseBattery {
+            self.caseBattery = newCaseBattery
+        }
+        
+        if self.rightBattery != newRightBattery {
+            self.rightBattery = newRightBattery
+        }
+    }
+    
+    private func setChargingState(newIsLeftCharging: Bool, newIsRightCharging: Bool, newIsCaseCharging: Bool) {
+        if self.isRightCharging != newIsLeftCharging {
+            withAnimation {
+                self.isRightCharging = newIsLeftCharging
+            }
+        }
+        
+        if self.isLeftCharging != newIsLeftCharging {
+            withAnimation {
+                self.isLeftCharging = newIsLeftCharging
+            }
+        }
+        
+        if self.isCaseCharging != newIsCaseCharging {
+            withAnimation {
+                self.isCaseCharging = newIsCaseCharging
             }
         }
     }
     
+    private func setVisibilityState(newIsLeftConnected: Bool, newIsRightConnected: Bool, newIsCaseConnected: Bool) {
+        if self.isRightConnected != newIsRightConnected{
+            withAnimation {
+                self.isRightConnected = newIsRightConnected
+            }
+            
+        }
+        
+        if self.isLeftConnected != newIsLeftConnected {
+            withAnimation {
+                self.isLeftConnected = newIsLeftConnected
+            }
+            
+        }
+        
+        if self.isCaseConnected != newIsCaseConnected{
+            withAnimation {
+                self.isCaseConnected = newIsCaseConnected
+            }
+            
+        }
+    }
+    
+    
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-        
     
-    
-  
 }

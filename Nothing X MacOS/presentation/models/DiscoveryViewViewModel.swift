@@ -7,7 +7,7 @@
 
 import Foundation
 
-class DiscoverViewViewModel : ObservableObject {
+class DiscoveryViewViewModel : ObservableObject {
 
     private let isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol
     @Published var destination: Destination = .discover_started
@@ -15,9 +15,9 @@ class DiscoverViewViewModel : ObservableObject {
     
     private var discoveredDevice: BluetoothDeviceEntity? = nil
     
-    init(bluetoothService: BluetoothService) {
+    init(isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol) {
 
-        self.isBluetoothOnUseCase = IsBluetoothOnUseCase(bluetoothService: bluetoothService)
+        self.isBluetoothOnUseCase = isBluetoothOnUseCase
    
         
         NotificationCenter.default.addObserver(forName: Notification.Name(BluetoothNotifications.BLUETOOTH_ON.rawValue), object: nil, queue: .main) {

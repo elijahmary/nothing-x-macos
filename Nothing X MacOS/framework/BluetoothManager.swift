@@ -17,12 +17,11 @@ class BluetoothManager: NSObject, IOBluetoothDeviceInquiryDelegate, IOBluetoothR
     static let shared = BluetoothManager()
     
     private var device: IOBluetoothDevice?
-    private var channel: IOBluetoothRFCOMMChannel?
-    private var deviceInquiry: IOBluetoothDeviceInquiry?
-    private var connectedDevice: IOBluetoothDevice?
     private var rfcommChannel: IOBluetoothRFCOMMChannel?
-    private var centralManager: CBCentralManager!
+    private var deviceInquiry: IOBluetoothDeviceInquiry?
     private lazy var deviceClass: UInt32? = nil
+    
+    private var centralManager: CBCentralManager!
     private var bluetoothState: BluetoothStates = .OFF
     
     
@@ -108,59 +107,85 @@ class BluetoothManager: NSObject, IOBluetoothDeviceInquiryDelegate, IOBluetoothR
         }
     }
     
-    func connectToDevice(address: String, channelID: UInt8) {
+    private func notifyConnectionSuccess() {
+        
+        if let device = device {
+            
+            self.logger.info("Connected to device")
+            
+            let bluetoothDevice = BluetoothDeviceEntity(name: device.name, mac: device.addressString, channelId: 15, isPaired: true, isConnected: true)
+            
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.CONNECTED.rawValue), object: bluetoothDevice)
+            }
+        }
+    }
+    
+    
+    func connectToDevice(address: String, channelID: UInt8) throws {
+        
+        guard address.isValidBluetoothMACAddress() else {
+            
+            throw Errors.invalidArgument("Provided mac address is invalid")
+        }
+        
         stopDeviceInquiry()
         
-        DispatchQueue.global(qos: .userInitiated).async {
-            // Check if the device is already connected
-            self.logger.info("Connecting to device \(address)")
-            if !(self.device?.isConnected() ?? false) {
+        if !isDeviceConnected() {
+            
+            DispatchQueue.global(qos: .userInitiated).async {
+                
+                self.logger.info("Connecting to device \(address)")
+                
                 self.device = IOBluetoothDevice(addressString: address)
                 
-                // Open a connection to the device
-                let resultConnection = self.device?.openConnection()
-                if resultConnection == kIOReturnSuccess {
-                    self.logger.info("Connected to device")
-                    let bluetoothDevice = BluetoothDeviceEntity(name: self.device!.name, mac: address, channelId: channelID, isPaired: true, isConnected: true)
+                let result = self.device?.openConnection()
+                if result == kIOReturnSuccess {
                     
-                    // Notify on the main thread
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.CONNECTED.rawValue), object: bluetoothDevice)
-                    }
+                    self.notifyConnectionSuccess()
                 } else {
-                    self.logger.error("Failed to connect to device")
-                    DispatchQueue.main.async {
-                        self.device = nil
-                        NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.FAILED_TO_CONNECT.rawValue), object: nil)
-                    }
+                    
+                    self.notifyConnectionFail()
                     return
                 }
                 
-                // Open an RFCOMM channel to the device
-                let resultRFCOMM = self.device?.openRFCOMMChannelAsync(&self.channel, withChannelID: channelID, delegate: self)
+                self.attemptOpenRFCOMMChannel()
+            }
+        }
+    }
+    
+    private func attemptOpenRFCOMMChannel() {
+        
+        if let device = device {
+            let resultRFCOMM = device.openRFCOMMChannelAsync(&self.rfcommChannel, withChannelID: 15, delegate: self)
+            
+            if resultRFCOMM == kIOReturnSuccess {
                 
-                if resultRFCOMM == kIOReturnSuccess {
-                    self.logger.info("Opened RFCOMM channel")
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.OPENED_RFCOMM_CHANNEL.rawValue), object: nil)
-                    }
-                } else {
-                    self.logger.error("Failed to open RFCOMM channel")
-                    self.device = nil
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.FAILED_RFCOMM_CHANNEL.rawValue), object: nil)
-                    }
-                }
-            } else {
+                self.logger.info("Opened RFCOMM channel")
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.OPENED_RFCOMM_CHANNEL.rawValue), object: nil)
+                }
+            } else {
+                
+                self.logger.error("Failed to open RFCOMM channel")
+                self.device = nil
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.FAILED_RFCOMM_CHANNEL.rawValue), object: nil)
                 }
             }
         }
     }
     
+    fileprivate func notifyConnectionFail() {
+        self.logger.error("Failed to connect to device")
+        DispatchQueue.main.async {
+            self.device = nil
+            NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.FAILED_TO_CONNECT.rawValue), object: nil)
+        }
+    }
+    
     func send(data: UnsafeMutableRawPointer!, length: UInt16) {
-        channel?.writeSync(data, length: length)
+        rfcommChannel?.writeSync(data, length: length)
     }
     
     func rfcommChannelData(_ rfcommChannel: IOBluetoothRFCOMMChannel!, data dataPointer: UnsafeMutableRawPointer!, length dataLength: Int) {
@@ -176,14 +201,14 @@ class BluetoothManager: NSObject, IOBluetoothDeviceInquiryDelegate, IOBluetoothR
     func rfcommChannelClosed(_ channel: IOBluetoothRFCOMMChannel) {
         logger.info("RFCOMM channel closed.")
         self.device = nil
-        self.channel = nil
+        self.rfcommChannel = nil
         NotificationCenter.default.post(name: Notification.Name(BluetoothNotifications.CLOSED_RFCOMM_CHANNEL.rawValue), object: nil)
     }
     
     func disconnectDevice() {
-        if let channel = self.channel {
+        if let channel = self.rfcommChannel {
             channel.close() // This should trigger rfcommChannelClosed delegate method
-            self.channel = nil // Ensure it's set to nil immediately
+            self.rfcommChannel = nil // Ensure it's set to nil immediately
         }
         
         // Close the Connection to the Device
@@ -199,7 +224,7 @@ class BluetoothManager: NSObject, IOBluetoothDeviceInquiryDelegate, IOBluetoothR
         }
         
         // Clear any stored device information
-        connectedDevice = nil
+        device = nil
         rfcommChannel = nil
         
         // Post a Notification (optional, but good practice)
@@ -212,4 +237,16 @@ class BluetoothManager: NSObject, IOBluetoothDeviceInquiryDelegate, IOBluetoothR
         deviceInquiry?.stop()
     }
     
+}
+
+extension String {
+    
+    func isValidBluetoothMACAddress() -> Bool {
+        
+        let macAddressPattern = "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+        let regex = try! NSRegularExpression(pattern: macAddressPattern, options: [])
+        let range = NSRange(location: 0, length: self.utf16.count)
+        
+        return regex.firstMatch(in: self, options: [], range: range) != nil
+    }
 }

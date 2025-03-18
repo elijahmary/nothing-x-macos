@@ -15,6 +15,7 @@
 		657668C82D84059600E27864 /* ReadANCUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C72D84059600E27864 /* ReadANCUnitTests.swift */; };
 		657668CA2D8409BD00E27864 /* ReadSerialUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668C92D8409BD00E27864 /* ReadSerialUnitTests.swift */; };
 		657668F22D857A1A00E27864 /* CRC16UnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657668F12D857A1A00E27864 /* CRC16UnitTests.swift */; };
+		6576690B2D89459300E27864 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = 6576690A2D89459300E27864 /* Swinject */; };
 		658FEF082D7EFAC800699B1A /* bluetooth_disabled.svg in Resources */ = {isa = PBXBuildFile; fileRef = 658FEF072D7EFAC800699B1A /* bluetooth_disabled.svg */; };
 		D60A9B092992693300749EB6 /* 5by7.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D60A9B082992693300749EB6 /* 5by7.ttf */; };
 		D60A9B0A2992693300749EB6 /* 5by7.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D60A9B082992693300749EB6 /* 5by7.ttf */; };
@@ -90,6 +91,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6576690B2D89459300E27864 /* Swinject in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,6 +306,9 @@
 				Base,
 			);
 			mainGroup = D60C145129697E7B003E10D4;
+			packageReferences = (
+				657669092D89459300E27864 /* XCRemoteSwiftPackageReference "Swinject" */,
+			);
 			productRefGroup = D60C145B29697E7B003E10D4 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -693,6 +698,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		657669092D89459300E27864 /* XCRemoteSwiftPackageReference "Swinject" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Swinject/Swinject.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6576690A2D89459300E27864 /* Swinject */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 657669092D89459300E27864 /* XCRemoteSwiftPackageReference "Swinject" */;
+			productName = Swinject;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D60C145229697E7B003E10D4 /* Project object */;
 }

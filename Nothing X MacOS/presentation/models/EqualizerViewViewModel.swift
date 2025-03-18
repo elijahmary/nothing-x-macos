@@ -13,29 +13,37 @@ class EqualizerViewViewModel : ObservableObject {
     
     private let switchEqUseCase: SwitchEqUseCaseProtocol
     
-    @Published var eq: EQProfiles = .BALANCED
+    @Published private(set) var eq: EQProfiles = .BALANCED
     
-    init(nothingService: NothingService) {
+    init(switchEqUseCase: SwitchEqUseCaseProtocol) {
         
-        self.switchEqUseCase = SwitchEqUseCase(service: nothingService)
+        self.switchEqUseCase = switchEqUseCase
         
         
-        NotificationCenter.default.addObserver(forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue), object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleDataUpdateSuccessNotification(_ :)
             
-            if let device = notification.object as? NothingDeviceEntity {
-                withAnimation {
-                    
-                    if self.eq != device.listeningMode {
-                        self.eq = device.listeningMode
-                    }
-                    
+            )
+        
+    }
+    
+    private func handleDataUpdateSuccessNotification(_ notification: Notification) {
+        if let device = notification.object as? NothingDeviceEntity {
+            withAnimation {
+                
+                if self.eq != device.listeningMode {
+                    self.eq = device.listeningMode
                 }
                 
             }
+            
         }
     }
     
-   
+
     
     func switchEQ(eq: EQProfiles) {
     

@@ -10,81 +10,69 @@ import SwiftUI
 
 class NoiseControlViewViewModel : ObservableObject {
     
-    private let nothingService: NothingService
+    private let switchAncUseCase: SwitchAncUseCaseProtocol
     
     @Published var noiseSelectionOffset: CGFloat = 61
     @Published var anc: NoiseControlOptions = .off
     
-    init(nothingService: NothingService) {
+    init(switchAncUseCase: SwitchAncUseCaseProtocol) {
         
- 
+        self.switchAncUseCase = switchAncUseCase
         
-        self.nothingService = nothingService
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleDataUpdateSuccessNotification(_ :)
+        )
+    
+    }
+    
+    
+    private func handleDataUpdateSuccessNotification(_ notification: Notification) {
         
-       
-       
-        NotificationCenter.default.addObserver(forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue), object: nil, queue: .main) { notification in
-            
-            if let device = notification.object as? NothingDeviceEntity {
+        if let device = notification.object as? NothingDeviceEntity {
+            withAnimation {
+                self.anc = self.ancToNoiseControlOptions(anc: device.anc)
                 
+                let offsetMapping: [NoiseControlOptions: CGFloat] = [
+                    .off: 61,
+                    .transparency: 0,
+                    .anc: -61
+                ]
                 
-                
-                withAnimation {
-                    self.anc = self.ancToNoiseControlOptions(anc: device.anc)
-                    switch self.anc {
-                    case .off:
-                        self.noiseSelectionOffset = 61
-                    case .transparency:
-                        self.noiseSelectionOffset = 0
-                    case .anc:
-                        self.noiseSelectionOffset = -61
-                    }
-                }
+                self.noiseSelectionOffset = offsetMapping[self.anc] ?? 61
             }
         }
-        
-        
     }
-        
     
-
     
     func ancToNoiseControlOptions(anc: ANC) -> NoiseControlOptions {
         
+        let actionMapping: [ANC: NoiseControlOptions] = [
+            .OFF: .off,
+            .TRANSPARENCY: .transparency,
+            .ON_LOW: .anc,
+            .ON_HIGH: .anc
+        ]
         
-        switch anc {
-        case .OFF:
-            return .off
-        case .TRANSPARENCY:
-            return .transparency
-        case .ON_LOW:
-            return .anc
-        case .ON_HIGH:
-            return .anc
-        default:
-            return .off
-        }
-        
-        
+        return actionMapping[anc] ?? .off
     }
-    
-    func noiseControlOptionsToAnc(option: NoiseControlOptions) -> ANC{
+
+    func noiseControlOptionsToAnc(option: NoiseControlOptions) -> ANC {
         
-        switch option {
-        case .off:
-            return .OFF
-        case .transparency:
-            return .TRANSPARENCY
-        case .anc:
-            return .ON_LOW
-            
-            
-        }
+        let actionMapping: [NoiseControlOptions: ANC] = [
+            .off: .OFF,
+            .transparency: .TRANSPARENCY,
+            .anc: .ON_LOW
+        ]
+        
+        return actionMapping[option] ?? .OFF
     }
     
     func switchANC(anc: ANC) {
-        nothingService.switchANC(mode: anc)
-       
+        switchAncUseCase.switchANC(mode: anc)
+        
     }
     
     deinit {

@@ -6,18 +6,10 @@ import SwiftUI
 struct Nothing_X_MacOSApp: App {
     
     @StateObject private var store = Store()
-    @StateObject private var viewModel = MainViewViewModel(
-        
-        fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
-        disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
-        getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
-        isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
-        isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared),
-        isLocalConfigEmptyUseCase: IsLocalConfigEmptyUseCase(nothingRepository: NothingRepositoryImpl.shared)
-        
-    )
+    @StateObject private var viewModel = AppContainer.shared.container.resolve(MainViewViewModel.self)!
     @StateObject private var budsPickerViewModel = BudsPickerComponentViewModel()
-
+    
+    
     var body: some Scene {
         MenuBarExtra {
             NavigationStack(path: $viewModel.navigationPath.animation(.default)) {
@@ -48,13 +40,13 @@ struct Nothing_X_MacOSApp: App {
                         
                         
                     }
-                    
+                
             }
             .environmentObject(store)
             .environmentObject(viewModel)
             .environmentObject(budsPickerViewModel)
             .frame(width: 250, height: 230)
-        
+            
             
         } label: {
             

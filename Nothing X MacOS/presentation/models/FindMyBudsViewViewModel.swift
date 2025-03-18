@@ -15,9 +15,13 @@ class FindMyBudsViewViewModel : ObservableObject {
     
     @Published var isRinging = false
     
-    init(nothingService: NothingService) {
-        ringBudsUseCase = RingBudsUseCase(nothingService: nothingService)
-        stopRingingBudsUseCase = StopRingingBudsUseCase(nothingService: nothingService)
+    init(
+        
+        ringBudsUseCase: RingBudsUseCaseProtocol,
+        stopRingingBudsUseCase: StopRingingBudsUseCaseProtocol
+    ) {
+        self.ringBudsUseCase = ringBudsUseCase
+        self.stopRingingBudsUseCase = stopRingingBudsUseCase
     }
     
     

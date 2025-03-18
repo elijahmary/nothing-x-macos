@@ -96,15 +96,7 @@ struct HomeView_Previews: PreviewProvider {
     static let store = Store()
 
     @State static var currentDestination: Destination? = .home
-    @ObservedObject private var viewModel = MainViewViewModel(
-        fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
-        disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
-        getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
-        isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
-        isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared),
-        isLocalConfigEmptyUseCase: IsLocalConfigEmptyUseCase(nothingRepository: NothingRepositoryImpl.shared)
-        
-    )
+    @ObservedObject private var viewModel = AppContainer.shared.container.resolve(MainViewViewModel.self)!
 
     
     static var previews: some View {

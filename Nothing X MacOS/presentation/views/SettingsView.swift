@@ -15,7 +15,9 @@ struct SettingsView: View {
     private let bottomButtonText: LocalizedStringKey? = "Cancel"
     
     
-    @StateObject private var viewModel = SettingsViewViewModel(nothingService: NothingServiceImpl.shared, nothingRepository: NothingRepositoryImpl.shared)
+    @StateObject private var viewModel = AppContainer.shared.container.resolve(
+        SettingsViewViewModel
+            .self)!
     
     @EnvironmentObject private var mainViewModel: MainViewViewModel
     
@@ -215,20 +217,15 @@ struct SettingsView: View {
 
 struct SettingsView_Previews: PreviewProvider {
     
-    @State private var viewModel = SettingsViewViewModel(nothingService: NothingServiceImpl.shared,
-                                                         nothingRepository: NothingRepositoryImpl.shared)
+    @State private var viewModel = AppContainer.shared.container.resolve(
+        SettingsViewViewModel
+            .self)!
     
     static var previews: some View {
         
-        let mainViewModel = MainViewViewModel(
-            fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
-            disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
-            getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
-            isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
-            isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared),
-            isLocalConfigEmptyUseCase: IsLocalConfigEmptyUseCase(nothingRepository: NothingRepositoryImpl.shared)
-            
-        )
+        let mainViewModel = AppContainer.shared.container.resolve(
+            MainViewViewModel
+                .self)!
         
         SettingsView()
             .environmentObject(mainViewModel)

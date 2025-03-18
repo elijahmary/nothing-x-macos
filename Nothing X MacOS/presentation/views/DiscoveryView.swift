@@ -11,7 +11,7 @@ import SwiftUI
 struct DiscoveryView : View {
     
     
-    @StateObject private var viewModel = DiscoverViewViewModel(bluetoothService: BluetoothServiceImpl())
+    @StateObject private var viewModel = AppContainer.shared.container.resolve(DiscoveryViewViewModel.self)!
     
     var body : some View {
         ZStack {
@@ -28,7 +28,7 @@ struct DiscoveryView : View {
                     QuitButtonComponent()
                     
                 }
-         
+                
                 
                 // Heading
                 HStack() {
@@ -47,12 +47,12 @@ struct DiscoveryView : View {
                     .padding(.leading, 16)
                     Spacer()
                 }
-
+                
                 
             }
             .frame(width: 250, height: 230)
             .zIndex(1)
-        
+            
             VStack(alignment: .center) {
                 
                 
@@ -73,7 +73,7 @@ struct DiscoveryView : View {
                     }
                     // Optional: to remove default button styling
                     .buttonStyle(TransparentButton())
-                
+                    
                 }
                 
             }

@@ -9,9 +9,8 @@ import SwiftUI
 
 struct EqualizerView: View {
     
-    
-    @ObservedObject var viewModel = EqualizerViewViewModel(nothingService: NothingServiceImpl.shared)
-    @Binding var eqMode: EQProfiles 
+    @ObservedObject var viewModel = AppContainer.shared.container.resolve(EqualizerViewViewModel.self)!
+    @Binding var eqMode: EQProfiles
     
     var body: some View {
         
@@ -101,15 +100,7 @@ struct EqualizerView_Previews: PreviewProvider {
 
         var body: some View {
             EqualizerView(eqMode: $eqMode) // Pass the binding
-                .environmentObject(MainViewViewModel(
-                    fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
-                    disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
-                    getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
-                    isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
-                    isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared),
-                    isLocalConfigEmptyUseCase: IsLocalConfigEmptyUseCase(nothingRepository: NothingRepositoryImpl.shared)
-                    
-                ))
+                .environmentObject(AppContainer.shared.container.resolve(MainViewViewModel.self)!)
                 .previewDisplayName("Equalizer View Preview")
         }
     }

@@ -15,7 +15,7 @@ struct ControlsDetailView: View {
     
     @EnvironmentObject var mainViewModel: MainViewViewModel
     @EnvironmentObject var budsPickerViewModel: BudsPickerComponentViewModel
-    @State var viewModel: ControlsDetailViewViewModel = ControlsDetailViewViewModel(nothingService: NothingServiceImpl.shared)
+    @State var viewModel = AppContainer.shared.container.resolve(ControlsDetailViewViewModel.self)!
     
     @Binding var leftTripleTapAction: TripleTapGestureActions
     @Binding var rightTripleTapAction: TripleTapGestureActions
@@ -248,15 +248,9 @@ struct ControlsDetailView_Previews: PreviewProvider {
                                leftTapAndHoldAction: $leftTapAndHoldAction,
                                rightTapAndHoldAction: $rightTapAndHoldAction
             ).environmentObject(store)
-                .environmentObject(MainViewViewModel(
-                    fetchDataUseCase: FetchDataUseCase(service: NothingServiceImpl.shared),
-                    disconnectDeviceUseCase: DisconnectDeviceUseCase(nothingService: NothingServiceImpl.shared),
-                    getSavedDevicesUseCase: GetSavedDevicesUseCase(nothingRepository: NothingRepositoryImpl.shared),
-                    isBluetoothOnUseCase: IsBluetoothOnUseCase(bluetoothService: BluetoothServiceImpl()),
-                    isNothingConnectedUseCase: IsNothingConnectedUseCase(nothingService: NothingServiceImpl.shared),
-                    isLocalConfigEmptyUseCase: IsLocalConfigEmptyUseCase(nothingRepository: NothingRepositoryImpl.shared)
-                    
-                ))
+                .environmentObject(
+                    AppContainer.shared.container.resolve(MainViewViewModel.self)!
+                )
                 .environmentObject(viewModel)
         }
     }

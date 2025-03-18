@@ -11,72 +11,57 @@ class ControlsDetailViewViewModel : ObservableObject {
     private let switchControlsUseCase: SwitchControlsUseCaseProtocol
 
     
-    init(nothingService: NothingService) {
-        self.switchControlsUseCase = SwitchControlsUseCase(nothingService: nothingService)
+    init(switchControlsUseCase: SwitchControlsUseCaseProtocol) {
+        self.switchControlsUseCase = switchControlsUseCase
     }
     
 
     func switchTripleTapAction(device: GestureDeviceType, action: TripleTapOptions) {
- 
-        var convertedAction: TripleTapGestureActions = .NO_EXTRA_ACTION
         
-        switch action {
-        case .no_action:
-            convertedAction = .NO_EXTRA_ACTION
-        case .skip_back:
-            convertedAction = .SKIP_BACK
-        case .skip_forward:
-            convertedAction = .SKIP_FORWARD
-        case .voice_assistant:
-            convertedAction = .VOICE_ASSISTANT
-        }
+        let actionMapping: [TripleTapOptions: TripleTapGestureActions] = [
+            .no_action: .NO_EXTRA_ACTION,
+            .skip_back: .SKIP_BACK,
+            .skip_forward: .SKIP_FORWARD,
+            .voice_assistant: .VOICE_ASSISTANT
+        ]
+        
+        let convertedAction = actionMapping[action] ?? .NO_EXTRA_ACTION
         
         switchControlsUseCase.switchGesture(device: device, gesture: .TRIPLE_TAP, action: convertedAction.rawValue)
     }
     
     func switchTapAndHoldAction(device: GestureDeviceType, action: TapAndHoldOptions) {
-        var convertedAction: TapAndHoldGestureActions = .NO_EXTRA_ACTION
         
-        switch action {
-        case .no_extra_action:
-            convertedAction = .NO_EXTRA_ACTION
-        case .noise_control:
-            convertedAction = .NOISE_CONTROL
-        }
+        let actionMapping: [TapAndHoldOptions: TapAndHoldGestureActions] = [
+            .no_extra_action: .NO_EXTRA_ACTION,
+            .noise_control: .NOISE_CONTROL
+        ]
+        
+        let convertedAction = actionMapping[action] ?? .NO_EXTRA_ACTION
+        
         switchControlsUseCase.switchGesture(device: device, gesture: .TAP_AND_HOLD, action: convertedAction.rawValue)
     }
     
     func convertTripleTapActionToOption(action: TripleTapGestureActions) -> TripleTapOptions {
         
-        var convertedOption: TripleTapOptions = .no_action
+        let actionMapping: [TripleTapGestureActions: TripleTapOptions] = [
+            .NO_EXTRA_ACTION: .no_action,
+            .SKIP_BACK: .skip_back,
+            .SKIP_FORWARD: .skip_forward,
+            .VOICE_ASSISTANT: .voice_assistant
+        ]
         
-        switch action {
-        case .NO_EXTRA_ACTION:
-            convertedOption = .no_action
-        case .SKIP_BACK:
-            convertedOption = .skip_back
-        case .SKIP_FORWARD:
-            convertedOption = .skip_forward
-        case .VOICE_ASSISTANT:
-            convertedOption = .voice_assistant
-        }
-        
-        return convertedOption
+        return actionMapping[action] ?? .no_action
     }
-    
+
     func convertTapAndHoldActionToOption(action: TapAndHoldGestureActions) -> TapAndHoldOptions {
         
-        var convertedOption: TapAndHoldOptions = .no_extra_action
+        let actionMapping: [TapAndHoldGestureActions: TapAndHoldOptions] = [
+            .NOISE_CONTROL: .noise_control,
+            .NO_EXTRA_ACTION: .no_extra_action
+        ]
         
-        switch action {
-        case .NOISE_CONTROL:
-            convertedOption = .noise_control
-        case .NO_EXTRA_ACTION:
-            convertedOption = .no_extra_action
-       
-        }
-        
-        return convertedOption
+        return actionMapping[action] ?? .no_extra_action
     }
     
 }

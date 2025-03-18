@@ -9,52 +9,70 @@ import Foundation
 
 class ConnectViewViewModel : ObservableObject {
     
+    private let isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol
+    private let connectToNothingUseCase: ConnectToNothingUseCaseProtocol
+    private let getSavedDevicesUseCase: GetSavedDevicesUseCaseProtocol
     
-    private let nothingRepository: NothingRepository
-    private let nothingService: NothingService
     
     @Published var isLoading = false
     @Published var isFailedToConnectPresented = false
     @Published var retry = false
-    
-    private let isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol
     @Published private(set) var isBluetoothOn = false
     
     
-    init(nothingRepository: NothingRepository, nothingService: NothingService, bluetoothService: BluetoothService) {
+    
+    init(isBluetoothOnUseCase: IsBluetoothOnUseCaseProtocol,
+         connectToNothingUseCase: ConnectToNothingUseCaseProtocol,
+         getSavedDevicesUseCase: GetSavedDevicesUseCaseProtocol) {
         
-        self.nothingRepository = nothingRepository
-        self.nothingService = nothingService
-        self.isBluetoothOnUseCase = IsBluetoothOnUseCase(bluetoothService: bluetoothService)
+        self.isBluetoothOnUseCase = isBluetoothOnUseCase
+        self.connectToNothingUseCase = connectToNothingUseCase
+        self.getSavedDevicesUseCase = getSavedDevicesUseCase
         
-        NotificationCenter.default.addObserver(forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue), object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(
             
+            forName: Notification.Name(NothingServiceNotifications.DATA_UPDATE_SUCCESS.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleDataUpdateSuccessNotification(_:)
+            
+        )
+        
+        
+        NotificationCenter.default.addObserver(
+            
+            forName: Notification.Name(BluetoothNotifications.FAILED_TO_CONNECT.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleFailedToConnectNotification(_:)
+        )
+        
+        NotificationCenter.default.addObserver(
+            
+            forName: Notification.Name(Notifications.REQUEST_RETRY.rawValue),
+            object: nil,
+            queue: .main,
+            using: handleRequestRetryNotification(_:)
+        )
+        
+    }
+    
+    @objc private func handleDataUpdateSuccessNotification(_ notification: Notification) {
+        self.isLoading = false
+    }
+    
+    @objc private func handleFailedToConnectNotification(_ notification: Notification) {
+        withAnimation {
+            self.isFailedToConnectPresented = true
             self.isLoading = false
-            
         }
-        
-        
-        NotificationCenter.default.addObserver(forName: Notification.Name(BluetoothNotifications.FAILED_TO_CONNECT.rawValue), object: nil, queue: .main) {
-            notification in
-            
-            
-            withAnimation {
-                self.isFailedToConnectPresented = true
-                self.isLoading = false
-            }
-            
+    }
+    
+    @objc private func handleRequestRetryNotification(_ notification: Notification) {
+        connect()
+        withAnimation {
+            self.isFailedToConnectPresented = false
         }
-        
-        NotificationCenter.default.addObserver(forName: Notification.Name(Notifications.REQUEST_RETRY.rawValue), object: nil, queue: .main) {
-            notification in
-            
-            self.connect()
-            withAnimation {
-                self.isFailedToConnectPresented = false
-            }
-            
-        }
-        
     }
     
     func checkBluetoothStatus() {
@@ -63,9 +81,9 @@ class ConnectViewViewModel : ObservableObject {
     
     func connect() {
         isLoading = true
-        let devices = nothingRepository.getSaved()
+        let devices = getSavedDevicesUseCase.getSaved()
         
-        nothingService.connectToNothing(device: devices[0].bluetoothDetails)
+        connectToNothingUseCase.connectToNothing(device: devices[0].bluetoothDetails)
     }
     
     func navigateToBluetoothOffView() {

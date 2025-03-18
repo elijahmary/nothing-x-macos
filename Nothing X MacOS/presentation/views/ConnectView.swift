@@ -14,7 +14,7 @@ struct ConnectView: View {
     private let topButtonText: LocalizedStringKey? = "Retry"
     private let bottomButtonText: LocalizedStringKey? = "Cancel"
     
-    @StateObject private var viewModel = ConnectViewViewModel(nothingRepository: NothingRepositoryImpl.shared, nothingService: NothingServiceImpl.shared, bluetoothService: BluetoothServiceImpl())
+    @StateObject private var viewModel = AppContainer.shared.container.resolve(ConnectViewViewModel.self)!
     
     
     var body: some View {
