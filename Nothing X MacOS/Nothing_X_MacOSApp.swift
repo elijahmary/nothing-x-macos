@@ -54,8 +54,18 @@ struct Nothing_X_MacOSApp: App {
         } label: {
             
             if (viewModel.rightBattery != nil && viewModel.rightBattery != nil) {
-                Label("\(Double((viewModel.leftBattery ?? 0.0) + (viewModel.rightBattery ?? 0.0)) / 2.0, specifier: "%.0f")%", image: "nothing.ear.1")
-                    .labelStyle(.titleAndIcon)
+                if (viewModel.leftBattery == 0.0) {
+                    Label("\(Double(viewModel.rightBattery ?? 0.0), specifier: "%.0f")%", image: "nothing.ear.1")
+                        .labelStyle(.titleAndIcon)
+                } else {
+                    if (viewModel.rightBattery == 0.0) {
+                        Label("\(Double(viewModel.leftBattery ?? 0.0), specifier: "%.0f")%", image: "nothing.ear.1")
+                            .labelStyle(.titleAndIcon)
+                    } else {
+                        Label("\(Double((viewModel.leftBattery ?? 0.0) + (viewModel.rightBattery ?? 0.0)) / 2.0, specifier: "%.2f")%", image: "nothing.ear.1")
+                            .labelStyle(.titleAndIcon)
+                    }
+                }
             } else {
                 Label("", image: "nothing.ear.1")
                     .labelStyle(.titleAndIcon)
