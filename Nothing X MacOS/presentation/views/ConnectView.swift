@@ -24,7 +24,7 @@ struct ConnectView: View {
         ZStack(alignment: .bottom) {
             
             
-            // ear (1)
+            // ear (a)
             
             HStack {
                 DeviceNameDotTextView()
